@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="user" value="hdeeken"/>
+  <arg name="password" value="mYdB"/>
+  <arg name="host" value="localhost"/>
+  <arg name="database" value="sfcgal_test"/>
+
+  <include file="$(find spatial_db_ros)/launch/spatial_db_services.launch">
+    <param name="user" value="$(arg user)"/>
+    <param name="password" value="$(arg password)"/>
+    <param name="host" value="$(arg host)"/>
+    <param name="database" value="$(arg database)"/>
+  </include>
+
+  <include file="$(find spatial_environment)/launch/spatial_environment_services.launch">
+    <arg name="user" value="$(arg user)"/>
+    <arg name="password" value="$(arg password)"/>
+    <arg name="host" value="$(arg host)"/>
+    <arg name="database" value="$(arg database)"/>
+  </include>
+
+</launch>
