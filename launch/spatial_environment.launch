@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="user" value="hdeeken"/>
-  <arg name="password" value="mYdB"/>
-  <arg name="host" value="localhost"/>
-  <arg name="database" value="sfcgal_test"/>
+  <arg name="user" default="hdeeken"/>
+  <arg name="password" default="mYdB"/>
+  <arg name="host" default="localhost"/>
+  <arg name="database" default="semap_devel"/>
 
   <include file="$(find spatial_db_ros)/launch/spatial_db_services.launch">
     <param name="user" value="$(arg user)"/>
