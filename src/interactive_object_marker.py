@@ -19,7 +19,10 @@ from python_qt_binding.QtCore import *
 from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
 from spatial_db_ros.srv import *
 from spatial_db_ros.service_calls import *
-from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel, ObjectDescription, ObjectInstance
+from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
+from spatial_db_msgs.msg import ColorCommand
+from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
+from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from interactive_object_marker_widgets import *
 from assimp_postgis_importer import importFromFileToMesh
 from spatial_environment.service_calls import *
@@ -179,13 +182,19 @@ def removeControl(controls, name):
       if control.name == name:
         controls.remove(control)
 
-def createMenuControl(controls, object_name):
+def createMenuControl(controls, name):
     control = InteractiveMarkerControl()
     control.interaction_mode = InteractiveMarkerControl.MENU
     control.name = "Menu"
-    control.description= object_name
+    control.description= name
     control.always_visible = True
     controls.append(control)
+
+def updateMenuControl(controls, name):
+    for control in controls:
+      if control.name == "Menu":
+        controls.remove(control)
+    createMenuControl(controls, name)
 
 def listControls(controls):
     for control in controls:
@@ -217,7 +226,7 @@ def transformMesh(mesh, modifier):
       vertex.z *= modifier[2]
 
     return mesh
-    
+
 ####################
 ####################
 
@@ -302,7 +311,7 @@ def create_model_visualization_marker(frame, model, model_visu):
       if model_visu[model.type].show_text:
         text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
         array.markers.append(text_marker)
-        
+
     if type(model) is Polygon3DModel:
       pose = ROSPoseStamped()
       pose.header.frame_id = frame
@@ -613,7 +622,7 @@ def transformPolygonStamped(tf_listener, frame, polygon):
       transformed_polygon.polygon.points.append(new_point.point)
 
     return transformed_polygon
-  
+
   except tf.Exception as e:
     print "some tf exception happened %s" % e
 
@@ -716,6 +725,8 @@ class InteractiveObjectMarker():
   point3d_sub_ = None
   pose3d_sub_ = None
   polygon3d_sub_ = None
+  
+  color_sub_ = None
 
   process_point2d_ = False
   process_pose2d_ = False
@@ -734,16 +745,43 @@ class InteractiveObjectMarker():
 
     self.menu_handler = MenuHandler()
     self.geometry_movement_menu_handler = MenuHandler()
-    
+
     #save = self.menu_handler.insert("Save Changes", callback = self.saveChangesCb)
     #self.menu_handler.setVisible(save, False)
-    
+
     self.initInstanceMenu()
     self.initDescriptionMenu()
 
     self.createInteractiveMarker()
-    
+
 ## Callbacks
+
+  def labelObjectInstanceCb(self, feedback):
+    print ' reassign label'
+    handle = feedback.menu_entry_id
+    menu_handler = self.menu_handler
+    server = self.server
+
+    rospy.loginfo( "assign %s" % menu_handler.getTitle(handle) )
+    if menu_handler.getTitle(handle) == "Type":
+      name = self.obj.description.type
+    elif menu_handler.getTitle(handle) == "Alias":
+      if self.obj.alias != "":
+        name = self.obj.alias
+      else:
+        print "labeled object by type, there's no alias"
+        name = self.obj.description.type
+    elif menu_handler.getTitle(handle) == "Name":
+      name = self.obj.name
+
+    updateMenuControl(self.marker.controls, name)
+    server.applyChanges()
+    #self.update()
+
+  def visuObjectInstanceCb(self, feedback):
+    print "Visu Setup for Object:", self.obj.id, self.obj.name, self.obj.alias, "of", self.obj.description.type, self.obj.description.id
+    for key in self.model_visu.keys():
+      print self.model_visu[key]
 
   def processGeometryMovementFeedback(self, feedback ):
     if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
@@ -780,9 +818,9 @@ class InteractiveObjectMarker():
     handle = feedback.menu_entry_id
     menu_handler = self.menu_handler
     server = self.server
-    
+
     model_handle = findParent(menu_handler, self.models_menu_handle, handle)
-   
+
     if menu_handler.getTitle(model_handle) in self.model_visu.keys():
       state = menu_handler.getCheckState( model_handle )
 
@@ -866,7 +904,7 @@ class InteractiveObjectMarker():
     server = self.server
     handle = feedback.menu_entry_id
     state = menu_handler.getCheckState( handle )
-    
+
     if state == MenuHandler.CHECKED:
       removeControl(self.marker.controls, "MotionControl")
     else:
@@ -882,12 +920,9 @@ class InteractiveObjectMarker():
     server.applyChanges()
 
   def frameCb(self, feedback):
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv) 
     widget = ChooseReferenceFrameWidget(self.obj.name)
-    widget.show()
-    app.exec_()
-    self.update()
-
+    widget.exec_()
     name, keep_transform = widget.getChoice()
     call_change_frame(self.obj.id, name , keep_transform)
     self.update()
@@ -955,15 +990,12 @@ class InteractiveObjectMarker():
       rospy.logwarn('removeGeometryModelCb: Unknown MenuEntry %s was called.' % menu_handler.getTitle(handle))
 
     self.update()
-  
-  def rotateObjectInstanceCb(self, feedback):
-    handle = feedback.menu_entry_id
-    menu_handler = self.menu_handler
-    server = self.server
 
-    axis_handle = findParent(menu_handler, self.instance_menu_handle, handle)
-    pose = getRotation(axis_handle, handle)
-    
+  def rotateObjectInstanceCb(self, feedback):
+    axis_handle = findParent(self.menu_handler, self.instance_menu_handle,  feedback.menu_entry_id)
+    print 'handle', self.menu_handler.getTitle(axis_handle), self.menu_handler.getTitle(feedback.menu_entry_id)
+    pose = getRotation(self.menu_handler.getTitle(axis_handle), self.menu_handler.getTitle(feedback.menu_entry_id))
+    print 'pose',pose
     call_update_transform(self.obj.id, pose)
     self.update()
 
@@ -981,14 +1013,17 @@ class InteractiveObjectMarker():
       self.update()
       name, keep_transform = widget.getChoice()
       delete_res = call_delete_object_instances([self.obj.id], True, name, keep_transform)
+      self.app.reactivate_objects()
     elif menu_handler.getTitle(handle) == "Remove Children":
       delete_res = call_delete_object_instances([self.obj.id], False)
+   
     deactivate_res = call_deactivate_objects(delete_res.ids)
 
     for name in  deactivate_res.names:
       self.server.erase(name)
-    self.server.applyChanges()
 
+    self.server.applyChanges()
+    #self.update()
   def copyObjectInstanceCb(self, feedback):
     res = call_copy_object_instances([self.obj.id])
     call_activate_objects(res.ids)
@@ -1073,7 +1108,7 @@ class InteractiveObjectMarker():
     server = self.server
     menu_handler = self.menu_handler
 
-    handle = feedback.menu_entry_id  
+    handle = feedback.menu_entry_id
     move_handle = findParent(menu_handler, self.models_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
     model_id = self.model_visu[menu_handler.getTitle(model_handle)].id
@@ -1094,30 +1129,23 @@ class InteractiveObjectMarker():
       self.geometry_movement_id = None
       self.server.applyChanges()
       self.update()
-      
+
   def switchObjectDescriptionCb(self, feedback):
     app = QApplication(sys.argv)
     widget = ChooseObjectDescriptionWidget(self.obj.description.type)
     widget.show()
     app.exec_()
-    
+
+    print 'get choices from wid'
     desc_name, desc_id = widget.getChoice()
-    print desc_name, desc_id
-
+    print 'got choices from wid'
     del app, widget
-
-    if(desc_name == "Empty"):
-      #app = QApplication(sys.argv)
-      #widget = SetNameWidget()
-      #widget.show()
-      #app.exec_()
-
-      new_desc = ObjectDescription()
-      #desc.type = widget.getName()
-      new_desc.type = "New Description"
+    print 'got:', desc_name, desc_id
+    if(desc_id == -1):
+      new_desc = ROSObjectDescription()
+      new_desc.type = desc_name
       res = call_add_object_descriptions([new_desc])
       call_switch_object_descriptions([self.obj.id], res.ids[0])
-
     else:
       call_switch_object_descriptions([self.obj.id], desc_id)
 
@@ -1140,6 +1168,7 @@ class InteractiveObjectMarker():
       app.exec_()
       desc_name, desc_id = widget.getChoice()
       delete_res = call_delete_object_descriptions([self.obj.description.id], True, desc_id)
+      self.app.reactivate_objects()
     elif menu_handler.getTitle(handle) == "Strip Instances of Description":
       delete_res = call_delete_object_descriptions([self.obj.description.id], True)
     else:
@@ -1148,7 +1177,8 @@ class InteractiveObjectMarker():
 
     deactivate_res = call_activate_objects(delete_res.ids)
     self.server.applyChanges()
-
+    self.update()
+    
   def copyObjectDescriptionCb(self, feedback):
     res = call_copy_object_descriptions([self.obj.description.id])
 
@@ -1171,7 +1201,7 @@ class InteractiveObjectMarker():
         widget = SetGeometryModelTypeWidget()
         widget.show()
         app.exec_()
-        
+
         model.type = widget.getType()
         call_add_point_2d_model(self.obj.description.id, model)
         self.update()
@@ -1203,7 +1233,7 @@ class InteractiveObjectMarker():
       widget = SetGeometryModelTypeWidget()
       widget.show()
       app.exec_()
-      
+
       model.type = widget.getType()
       call_add_polygon_2d_model(self.obj.description.id, model)
       self.update()
@@ -1227,7 +1257,7 @@ class InteractiveObjectMarker():
         widget = SetGeometryModelTypeWidget()
         widget.show()
         app.exec_()
-        
+
         model.type = widget.getType()
         call_add_point_3d_model(self.obj.description.id, model)
         self.update()
@@ -1247,12 +1277,12 @@ class InteractiveObjectMarker():
         new_point = self.tf_listener.transformPose(self.obj.name, pose)
         model = Pose3DModel()
         model.pose = new_point.pose
-   
+
         app = QApplication(sys.argv)
         widget = SetGeometryModelTypeWidget()
         widget.show()
         app.exec_()
-       
+
         model.type = widget.getType()
         call_add_pose_3d_model(self.obj.description.id, model)
         self.update()
@@ -1278,7 +1308,7 @@ class InteractiveObjectMarker():
       widget = SetGeometryModelTypeWidget()
       widget.show()
       app.exec_()
-      
+
       model.type = widget.getType()
 
       call_add_polygon_3d_model(self.obj.description.id, model)
@@ -1320,7 +1350,12 @@ class InteractiveObjectMarker():
   def polymeshCb(self, feedback):
     print 'waiting for polymesh'
 
-###############################################
+  def colorCb(self, feedback):
+    if feedback.obj_id == self.obj.id or feedback.obj_id == self.obj.id:
+      if feedback.model_id in self.obj.model_visu.keys():
+        print 'changed color'
+        self.obj.model_visu[feedback.model].geo_color = [feedback.r,feedback.b, feedback.g, feedback.a]
+        self.update()
 
 ### Init Menus
 
@@ -1329,7 +1364,7 @@ class InteractiveObjectMarker():
 
     save = self.menu_handler.insert("Save Changes", parent = self.instance_menu_handle, callback = self.saveObjectInstanceCb)
     self.menu_handler.setVisible(save, True)
-  
+    
     move = self.menu_handler.insert("Move", parent = self.instance_menu_handle)
     move_6d = self.menu_handler.insert("6D", parent = move, callback = self.moveObjectInstanceCb)
     self.menu_handler.setCheckState(move_6d, MenuHandler.UNCHECKED)
@@ -1363,6 +1398,13 @@ class InteractiveObjectMarker():
     self.menu_handler.insert("Keep Children", parent = delete, callback = self.deleteObjectInstanceCb)
     self.menu_handler.insert("Redirect Children", parent = delete, callback = self.deleteObjectInstanceCb)
     self.menu_handler.insert("Remove Children", parent = delete, callback = self.deleteObjectInstanceCb)
+    
+    label = self.menu_handler.insert("Label", parent = meta)
+    self.menu_handler.insert("Type",  parent = label, callback = self.labelObjectInstanceCb)
+    self.menu_handler.insert("Alias", parent = label, callback = self.labelObjectInstanceCb)
+    self.menu_handler.insert("Name", parent = label, callback = self.labelObjectInstanceCb)
+    
+    visu = self.menu_handler.insert("VisuInfo", parent = meta, callback = self.visuObjectInstanceCb)
 
   def initDescriptionMenu(self):
     self.description_menu_handle = self.menu_handler.insert("Description")
@@ -1391,7 +1433,7 @@ class InteractiveObjectMarker():
     self.menu_handler.insert("Not Shown", parent = remove, callback = self.removeGeometryModelCb)
 
     self.models_menu_handle = self.menu_handler.insert("Models", parent = self.description_menu_handle)
-    
+
     for key in self.model_visu:
       self.model_entry[key] = self.menu_handler.insert(key, parent = self.models_menu_handle)
 
@@ -1399,7 +1441,7 @@ class InteractiveObjectMarker():
         state = MenuHandler.CHECKED
       else:
         state = MenuHandler.UNCHECKED
-      
+
       self.menu_handler.setCheckState(self.model_entry[key], state)
       self.menu_handler.insert("Show", parent = self.model_entry[key], callback = self.showGeometryModelCb)
 
@@ -1508,6 +1550,8 @@ class InteractiveObjectMarker():
     self.point3d_sub_ = rospy.Subscriber("clicked_point", PointStamped, self.point3dtopicCb)
     self.pose3d_sub_ = rospy.Subscriber("pose", PoseStamped, self.pose3dtopicCb)
     self.polygon3d_sub_ = rospy.Subscriber("polygon", PolygonStamped, self.polygon3dtopicCb)
+    
+    self.color_sub_ = rospy.Subscriber("color_cmd", ColorCommand, self.colorCb)
 
 ### Debug Node
 

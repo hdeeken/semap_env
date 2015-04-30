@@ -78,9 +78,10 @@ class ChooseObjectDescriptionWidget(QWidget):
     layout.addWidget( self.frame )
 
     self.choice_list = QComboBox()
-    self.choice_list.setEditable(False)
+    self.choice_list.setEditable(True)
     self.setChoices()
     layout.addWidget( self.choice_list )
+    print 'have set choices'
 
     h_layout = QHBoxLayout()
     top_button = QPushButton( "Apply" )
@@ -98,19 +99,33 @@ class ChooseObjectDescriptionWidget(QWidget):
     self.close()
 
   def getChoice(self):
-    return self.choice_, self.choices_map_[self.choice_]
+    print 'here i am'
+    
+    print self.choice_
+
+    if  self.choice_ in self.choices_map_.keys():
+      print 'old obj'
+      return self.choice_, self.choices_map_[self.choice_]
+    else:
+        print 'new obj'
+        return self.choice_, -1
 
   def cancelButtonClick( self ):
     self.close()
 
   def setChoices(self):
     response = call_get_object_descriptions_list()
-    self.choice_list.addItem("Empty")
-    self.choices_map_["Empty"] = 0
-    for desc in response.descriptions:
-      if desc.type != self.name_:
-        self.choice_list.addItem(desc.type)
-        self.choices_map_[desc.type] = desc.id
+    print 'got response', len(response.descriptions)
+    if len(response.descriptions) > 0:
+      for desc in response.descriptions:
+        if desc.type != self.name_:
+          self.choice_list.addItem(desc.type)
+          self.choices_map_[desc.type] = desc.id
+          print 'add', desc.type
+        else:
+          print 'desc type == self.name', desc.type
+    else:
+      print 'no desc avialable'
 
 class MeshTransformationWidget(QWidget):
   has_modifier_ = False
@@ -134,15 +149,20 @@ class MeshTransformationWidget(QWidget):
     side_button.clicked.connect( self.cancelButtonClick )
     h_layout.addWidget( side_button )
 
+    items = ["0.001", "0.01", "0.1", "1.0", "-0.001", "-0.01", "-0.1", "-1.0", "0.15", "0.2", "0.25", "0.025", "0.007", "0.002", "0.003", "0.004", "0.05", "0.025"]
+
     self.x_modifier = QComboBox()
+    self.x_modifier.addItems(items)
     self.x_modifier.setEditable(True)
     layout.addWidget( self.x_modifier )
 
     self.y_modifier = QComboBox()
+    self.y_modifier.addItems(items)
     self.y_modifier.setEditable(True)
     layout.addWidget( self.y_modifier )
 
     self.z_modifier = QComboBox()
+    self.z_modifier.addItems(items)
     self.z_modifier.setEditable(True)
     layout.addWidget( self.z_modifier )
 
@@ -221,23 +241,20 @@ class SetPose(QWidget):
     pos_layout = QHBoxLayout()
     pos_val = QDoubleValidator(-100, 100, 2)
 
-    self.pos_x_modifier = QLineEdit()
+    self.pos_x_modifier = QLineEdit("0.0")
     self.pos_x_modifier.setValidator(pos_val)
-    self.pos_x_modifier.insert("0.0")
     self.pos_x_modifier.textChanged.connect(self.check_state)
     self.pos_x_modifier.textChanged.emit(self.pos_x_modifier.text())
     pos_layout.addWidget( self.pos_x_modifier )
 
-    self.pos_y_modifier = QLineEdit()
+    self.pos_y_modifier = QLineEdit("0.0")
     self.pos_y_modifier.setValidator(pos_val)
-    self.pos_y_modifier.insert("0.0")
     self.pos_y_modifier.textChanged.connect(self.check_state)
     self.pos_y_modifier.textChanged.emit(self.pos_y_modifier.text())
     pos_layout.addWidget( self.pos_y_modifier )
 
-    self.pos_z_modifier = QLineEdit()
+    self.pos_z_modifier = QLineEdit("0.0")
     self.pos_z_modifier.setValidator(pos_val)
-    self.pos_z_modifier.insert("0.0")
     self.pos_z_modifier.textChanged.connect(self.check_state)
     self.pos_z_modifier.textChanged.emit(self.pos_z_modifier.text())
     pos_layout.addWidget( self.pos_z_modifier )
@@ -245,30 +262,26 @@ class SetPose(QWidget):
     ori_layout = QHBoxLayout()
     ori_val = QDoubleValidator(0.0, 1.0, 2)
 
-    self.ori_x_modifier = QLineEdit()
+    self.ori_x_modifier = QLineEdit("0.0")
     self.ori_x_modifier.setValidator(ori_val)
-    self.ori_x_modifier.insert("0.0")
     self.ori_x_modifier.textChanged.connect(self.check_state)
     self.ori_x_modifier.textChanged.emit(self.ori_x_modifier.text())
     ori_layout.addWidget( self.ori_x_modifier )
 
-    self.ori_y_modifier = QLineEdit()
+    self.ori_y_modifier = QLineEdit("0.0")
     self.ori_y_modifier.setValidator(ori_val)
-    self.ori_y_modifier.insert("0.0")
     self.ori_y_modifier.textChanged.connect(self.check_state)
     self.ori_y_modifier.textChanged.emit(self.ori_y_modifier.text())
     ori_layout.addWidget( self.ori_y_modifier )
 
-    self.ori_z_modifier = QLineEdit()
+    self.ori_z_modifier = QLineEdit("0.0")
     self.ori_z_modifier.setValidator(ori_val)
-    self.ori_z_modifier.insert("0.0")
     self.ori_z_modifier.textChanged.connect(self.check_state)
     self.ori_z_modifier.textChanged.emit(self.ori_z_modifier.text())
     ori_layout.addWidget( self.ori_z_modifier )
 
-    self.ori_w_modifier = QLineEdit()
+    self.ori_w_modifier = QLineEdit("1.0")
     self.ori_w_modifier.setValidator(ori_val)
-    self.ori_w_modifier.insert("0.0")
     self.ori_w_modifier.textChanged.connect(self.check_state)
     self.ori_w_modifier.textChanged.emit(self.ori_w_modifier.text())
     ori_layout.addWidget( self.ori_w_modifier )
@@ -361,9 +374,11 @@ class SetGeometryModelTypeWidget(QWidget):
 
   def getDescriptionTypes(self):
     response = call_get_geometry_model_types()
-    self.type_list.addItems(response.types)
-
-class ChooseReferenceFrameWidget(QWidget):
+    if len(response.types) > 0: 
+      self.type_list.addItems(response.types)
+    self.type_list.addItems(["Body"])
+    
+class ChooseReferenceFrameWidget(QDialog):
   name_ = None
   list_ = None
   choice_ = None
@@ -408,10 +423,13 @@ class ChooseReferenceFrameWidget(QWidget):
     self.close()
 
   def setChoices(self):
+    print 'get frames'
     response =  call_get_frame_names()
     for frame in response.frames:
       if frame != self.name_:
         self.choice_list.addItem(frame)
-
+        print 'add', frame
+    
+    self.choice_list.addItem('test')
   def getChoice(self):
     return self.choice_, self.keep_transform_cbox.checkState()
