@@ -694,14 +694,14 @@ def getRotation(axis, degree):
 
     return pose
 
-class InteractiveObjectMarker():
-
+class InteractiveObjectMarker():#QWidget):
+  app = None
   server = None
   obj = None
   marker = None
   geometry_movement_marker = None
   geometry_movement_menu_handler = None
-  
+
   tf_listener = None
 
   model_visu = {}
@@ -735,10 +735,12 @@ class InteractiveObjectMarker():
   process_pose3d_ = False
   process_polygon3d_ = False
 
-  def __init__(self, obj, server):
+  def __init__(self, obj, server, app):
+    #QWidget.__init__(self)
     self.obj = obj
     self.model_visu = lookupModelVisuConfig(self.obj.description)
     self.server = server
+    self.app = app
 
     self.tf_listener = tf.TransformListener()
     self.initSubscriber();
