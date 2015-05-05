@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import sys
 import copy
 from random import random
@@ -17,26 +16,20 @@ from visualization_msgs.msg import *
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
+from std_msgs.msg import String
 from spatial_db_ros.srv import *
 from spatial_db_ros.service_calls import *
 from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
-from spatial_db_msgs.msg import ColorCommand
+from spatial_db_msgs.msg import ColorCommand, LabelCommand
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
 from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from interactive_object_marker_widgets import *
 from assimp_postgis_importer import importFromFileToMesh
 from spatial_environment.service_calls import *
 from object_description_marker import *
+from visualization import *
 
 #### UNABHAENGIG ###
-def createTitleControl(controls, object_name):
-    control = InteractiveMarkerControl()
-    control.name = "Menu"
-    control.interaction_mode = InteractiveMarkerControl.BUTTON
-    control.always_visible = True
-    marker = create_title_marker(object_name)
-    control.markers.append(marker)
-    controls.append(control)
 
 def createVisuControl(controls, obj, visu):
     control = InteractiveMarkerControl()
@@ -182,19 +175,21 @@ def removeControl(controls, name):
       if control.name == name:
         controls.remove(control)
 
-def createMenuControl(controls, name):
+def createMenuControl(controls, pose, name):
     control = InteractiveMarkerControl()
     control.interaction_mode = InteractiveMarkerControl.MENU
     control.name = "Menu"
     control.description= name
     control.always_visible = True
+    marker = create_text_marker("Title", pose, [1.0, 1.0, 1.0, 1.0], [0.015, 0.15, 0.15], name)
+    control.markers.append(marker)
     controls.append(control)
 
-def updateMenuControl(controls, name):
+def updateMenuControl(controls, pose, name):
     for control in controls:
       if control.name == "Menu":
         controls.remove(control)
-    createMenuControl(controls, name)
+    createMenuControl(controls, pose, name)
 
 def listControls(controls):
     for control in controls:
@@ -230,374 +225,6 @@ def transformMesh(mesh, modifier):
 ####################
 ####################
 
-def create_model_visualization_marker(frame, model, model_visu):
-
-    array = MarkerArray()
-
-    if type(model) is Point2DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose.position.x = model.geometry.x
-      pose.pose.position.y = model.geometry.y
-      pose.pose.position.z = 0.0
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_point_marker("Point2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is Pose2DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      quat = quaternion_from_euler(0, 0, model.pose.theta)
-      pose.pose.position.x = model.pose.x
-      pose.pose.position.y = model.pose.y
-      pose.pose.position.z = 0.0
-      pose.pose.orientation.x = quat[0]
-      pose.pose.orientation.y = quat[1]
-      pose.pose.orientation.z = quat[2]
-      pose.pose.orientation.w = quat[3]
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_pose_marker("Pose2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is Polygon2DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_polygon_marker("Polygon2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is Point3DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose.position = model.geometry
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_point_marker("Point3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is Pose3DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_pose_marker("Pose3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is Polygon3DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_polygon_marker("Polygon3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is TriangleMesh3DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_mesh_marker("TriangleMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    if type(model) is PolygonMesh3DModel:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = frame
-      pose.pose.orientation.w = 1.0
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        for polygon in model.geometry.polygons:
-          geo_marker = create_polygon_marker("PolygonMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, polygon)
-          array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type, model_visu[model.type].text_offset)
-        array.markers.append(text_marker)
-
-    id = 0
-    for m in array.markers:
-      m.id = id
-      id += 1
-
-    return array
-
-def create_object_visualization_marker(obj, model_visu):
-
-    array = MarkerArray()
-    desc = obj.description
-
-    for model in desc.point2d_models:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-      pose.pose.position.x = model.geometry.x
-      pose.pose.position.y = model.geometry.y
-      pose.pose.position.z = 0.0
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_point_marker("Point2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    for model in desc.pose2d_models:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      quat = quaternion_from_euler(0, 0, model.pose.theta)
-      pose.pose.position.x = model.pose.x
-      pose.pose.position.y = model.pose.y
-      pose.pose.position.z = 0.0
-      pose.pose.orientation.x = quat[0]
-      pose.pose.orientation.y = quat[1]
-      pose.pose.orientation.z = quat[2]
-      pose.pose.orientation.w = quat[3]
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_pose_marker("Pose2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    for model in desc.polygon2d_models:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_polygon_marker("Polygon2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    for model in desc.point3d_models:
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose.position = model.geometry
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_point_marker("Point3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    for model in desc.pose3d_models:
-#      print 'pos3'
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_pose_marker("Pose3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-    for model in desc.polygon3d_models:
-#      print 'pol3'
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_polygon_marker("Polygon3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-    for model in desc.trianglemesh3d_models:
- #     print 'tri'
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        geo_marker = create_mesh_marker("TriangleMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
-        array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type)
-        array.markers.append(text_marker)
-
-    for model in desc.polygonmesh3d_models:
-     # print 'poly'
-      pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
-      pose.pose.orientation.w = 1.0
-
-      pose.pose = model.pose
-
-      if model_visu[model.type].show_geo:
-        for polygon in model.geometry.polygons:
-        #  print polygon
-          geo_marker = create_polygon_marker("PolygonMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, polygon)
-          array.markers.append(geo_marker)
-
-      if model_visu[model.type].show_text:
-        text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type, model_visu[model.type].text_offset)
-        array.markers.append(text_marker)
-
-    id = 0
-    for m in array.markers:
-      m.id = id
-      id += 1
-
-    return array
-
-def lookupModelVisuConfig(desc):
-  model_dict = {}
-
-  for model in desc.point2d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [1.0, 0.0, 0.0, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
-  for model in desc.pose2d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [1.0, 1.0, 0.0, 1.0]
-    geo_scale = [0.1, 0.025, 0.025]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
-  for model in desc.polygon2d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [0.0, 1.0, 1.0, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text,text_color, text_scale, text_offset)
-  for model in desc.point3d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [0.0, 0.0, 1.0, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
-  for model in desc.pose3d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [0.0, 0.0, 1.0, 1.0]
-    geo_scale = [0.1, 0.025, 0.025]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text,text_color, text_scale, text_offset)
-  for model in desc.polygon3d_models:
-    type = model.type
-    show_geo = True
-    geo_color = [0.0, 1.0, 0.0, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text,text_color, text_scale, text_offset)
-  for model in desc.trianglemesh3d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [0.0, 0.5, 0.5, 1.0]
-    geo_scale = [1.0, 1.0, 1.0]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.1, 0.1, 0.1]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
-  for model in desc.polygonmesh3d_models:
-    type = model.type
-    id = model.id
-    show_geo = True
-    geo_color = [0.5, 1.0, 0.5, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
-    show_text = True
-    text_color = [1.0, 1.0, 1.0, 1.0]
-    text_scale = [0.05, 0.05, 0.05]
-    text_offset = [0.0, 0.0, 0.15]
-    model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
-
-  return model_dict
-
 def switchCheckState(menu_handler, handle):
   state = menu_handler.getCheckState( handle )
 
@@ -625,37 +252,6 @@ def transformPolygonStamped(tf_listener, frame, polygon):
 
   except tf.Exception as e:
     print "some tf exception happened %s" % e
-
-class ModelVisu:
-  type = None
-  id = None
-  model = None
-  show_geo = False
-  geo_color = []
-  geo_scale = []
-  show_text = False
-  text_color = []
-  text_scale = []
-  text_offset = []
-
-  def __init__(self, type, id, model,\
-               show_geo = False, \
-               geo_color = [0,0,0,1], \
-               geo_scale = [0.2,0.2,0.2], \
-               show_text = False, \
-               text_color = [0,0,0,1], \
-               text_scale = [0.1,0.1,0.1], \
-               text_offset = [0.0,0.0,0.25]):
-    self.type = type
-    self.id = id
-    self.model = model
-    self.show_geo = show_geo
-    self.geo_color = geo_color
-    self.geo_scale = geo_scale
-    self.show_text = show_text
-    self.text_color = text_color
-    self.text_scale = text_scale
-    self.text_offset = text_offset
 
 def getRotation(axis, degree):
 
@@ -702,6 +298,7 @@ class InteractiveObjectMarker():#QWidget):
   geometry_movement_marker = None
   geometry_movement_menu_handler = None
 
+
   tf_listener = None
 
   model_visu = {}
@@ -715,6 +312,10 @@ class InteractiveObjectMarker():#QWidget):
 
   current_pose = None
 
+  label = None
+  label_pose = None
+  label_movement = None
+  label_movement_menu_handler = None
   geometry_movement = False
   geometry_movement_id = None
   geometry_movement_pose = None
@@ -725,8 +326,10 @@ class InteractiveObjectMarker():#QWidget):
   point3d_sub_ = None
   pose3d_sub_ = None
   polygon3d_sub_ = None
-  
+
   color_sub_ = None
+  label_sub_ = None
+  print_sub_ = None
 
   process_point2d_ = False
   process_pose2d_ = False
@@ -747,6 +350,7 @@ class InteractiveObjectMarker():#QWidget):
 
     self.menu_handler = MenuHandler()
     self.geometry_movement_menu_handler = MenuHandler()
+    self.label_movement_menu_handler = MenuHandler()
 
     #save = self.menu_handler.insert("Save Changes", callback = self.saveChangesCb)
     #self.menu_handler.setVisible(save, False)
@@ -775,19 +379,27 @@ class InteractiveObjectMarker():#QWidget):
         name = self.obj.description.type
     elif menu_handler.getTitle(handle) == "Name":
       name = self.obj.name
+    elif menu_handler.getTitle(handle) == "None":
+      for control in self.marker.controls:
+        if control.name == "Menu":
+          self.marker.controls.remove(control)
+          return
 
-    updateMenuControl(self.marker.controls, name)
+    updateMenuControl(self.marker.controls, self.label_pose, name)
     server.applyChanges()
     #self.update()
 
-  def visuObjectInstanceCb(self, feedback):
-    print "Visu Setup for Object:", self.obj.id, self.obj.name, self.obj.alias, "of", self.obj.description.type, self.obj.description.id
-    for key in self.model_visu.keys():
-      print self.model_visu[key]
+  def infoInstanceCb(self, feedback):
+    print "Id:", self.obj.id, "Name:", self.obj.name, "Alias:", self.obj.alias, "Type:", self.obj.description.type, "Type Id:", self.obj.description.id
 
   def processGeometryMovementFeedback(self, feedback ):
     if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
-          self.geometry_movement_pose = feedback.pose
+      self.geometry_movement_pose = feedback.pose
+    self.server.applyChanges()
+
+  def processLabelMovementFeedback(self, feedback ):
+    if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
+      self.label_pose.pose = feedback.pose
     self.server.applyChanges()
 
   def processFeedback(self, feedback ):
@@ -922,7 +534,7 @@ class InteractiveObjectMarker():#QWidget):
     server.applyChanges()
 
   def frameCb(self, feedback):
-    app = QApplication(sys.argv) 
+    app = QApplication(sys.argv)
     widget = ChooseReferenceFrameWidget(self.obj.name)
     widget.exec_()
     name, keep_transform = widget.getChoice()
@@ -1018,7 +630,7 @@ class InteractiveObjectMarker():#QWidget):
       self.app.reactivate_objects()
     elif menu_handler.getTitle(handle) == "Remove Children":
       delete_res = call_delete_object_instances([self.obj.id], False)
-   
+
     deactivate_res = call_deactivate_objects(delete_res.ids)
 
     for name in  deactivate_res.names:
@@ -1106,6 +718,24 @@ class InteractiveObjectMarker():#QWidget):
     call_update_geometry_model_pose(model_id, pose)
     self.update()
 
+  def moveLabelCb(self, feedback):
+    server = self.server
+    menu_handler = self.menu_handler
+
+    if not self.label_movement:
+      self.label_movement_id = self.obj.id
+      self.label_movement = True
+      self.createLabelMovement()
+
+    server.applyChanges()
+
+  def saveLabelMovementCb(self, feedback):
+    if self.label_movement:
+      self.server.erase(self.label)
+      self.label_movement = False
+      updateMenuControl(self.marker.controls, self.label_pose, self.label)
+      self.server.applyChanges()
+
   def moveGeometryModelCb(self, feedback):
     server = self.server
     menu_handler = self.menu_handler
@@ -1180,7 +810,7 @@ class InteractiveObjectMarker():#QWidget):
     deactivate_res = call_activate_objects(delete_res.ids)
     self.server.applyChanges()
     self.update()
-    
+
   def copyObjectDescriptionCb(self, feedback):
     res = call_copy_object_descriptions([self.obj.description.id])
 
@@ -1353,11 +983,74 @@ class InteractiveObjectMarker():#QWidget):
     print 'waiting for polymesh'
 
   def colorCb(self, feedback):
-    if feedback.obj_id == self.obj.id or feedback.obj_id == self.obj.id:
-      if feedback.model_id in self.obj.model_visu.keys():
-        print 'changed color'
-        self.obj.model_visu[feedback.model].geo_color = [feedback.r,feedback.b, feedback.g, feedback.a]
-        self.update()
+    if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
+      if feedback.model_type in self.model_visu.keys():
+        self.model_visu[feedback.model_type].show_geo = feedback.show_geo
+        self.model_visu[feedback.model_type].geo_color = feedback.geo_color
+        self.model_visu[feedback.model_type].geo_scale = feedback.geo_scale
+        self.model_visu[feedback.model_type].show_text = feedback.geo_color
+        self.model_visu[feedback.model_type].text_color = feedback.text_color
+        self.model_visu[feedback.model_type].text_scale = feedback.text_scale
+        self.model_visu[feedback.model_type].text_offset = feedback.text_offset
+        updateVisuControl(self.marker.controls, self.obj, self.model_visu)
+        self.server.applyChanges()
+    #self.update()
+
+  def labelCb(self, feedback):
+
+    print 'label it'
+
+    if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
+
+      if feedback.set_pose:
+        print 'sette dat pose'
+        self.label_pose.pose = feedback.label_pose
+        updateMenuControl(self.marker.controls, self.label_pose, self.label)
+
+      if feedback.label_type == "Type":
+        self.label = self.obj.description.type
+        updateMenuControl(self.marker.controls, self.label_pose, self.label)
+      elif feedback.label_type == "Alias":
+        if self.obj.alias != "":
+          self.label = self.obj.alias
+          updateMenuControl(self.marker.controls, self.label_pose, self.label)
+        else:
+          print "labeled object by type, there's no alias"
+          self.label = self.obj.description.type
+          updateMenuControl(self.marker.controls, self.label_pose, self.label)
+      elif feedback.label_type == "Name":
+        self.label = self.obj.name
+        updateMenuControl(self.marker.controls, self.label_pose, self.label)
+
+      elif feedback.label_type == "None":
+        for control in self.marker.controls:
+          if control.name == "Menu":
+            self.marker.controls.remove(control)
+            return
+
+    self.server.applyChanges()
+
+
+  def printLabelCb(self, feedback):
+
+    if feedback.data == "label":
+      string = 'rostopic pub /label_cmd spatial_db_msgs/LabelCommand '
+      string += '"obj_name: ' + "%r" % self.obj.name +"\n"
+      string += "desc_type: ''" +"\n"
+      string += "label_type: 'Alias'" +"\n"
+      string += "set_pose: true" +"\n"
+      string += "label_pose: " +"\n"
+      string += "  position:" +"\n"
+      string += "    x: " + str(self.label_pose.pose.position.x) +"\n"
+      string += "    y: " + str(self.label_pose.pose.position.y) +"\n"
+      string += "    z: " + str(self.label_pose.pose.position.z)+"\n"
+      string += "  orientation:" +"\n"
+      string += "    x: 0.0" +"\n"
+      string += "    y: 0.0" +"\n"
+      string += "    z: 0.0" +"\n"
+      string += '    w: 0.0"' +" -1 \n"
+
+      print string
 
 ### Init Menus
 
@@ -1366,7 +1059,7 @@ class InteractiveObjectMarker():#QWidget):
 
     save = self.menu_handler.insert("Save Changes", parent = self.instance_menu_handle, callback = self.saveObjectInstanceCb)
     self.menu_handler.setVisible(save, True)
-    
+
     move = self.menu_handler.insert("Move", parent = self.instance_menu_handle)
     move_6d = self.menu_handler.insert("6D", parent = move, callback = self.moveObjectInstanceCb)
     self.menu_handler.setCheckState(move_6d, MenuHandler.UNCHECKED)
@@ -1393,6 +1086,7 @@ class InteractiveObjectMarker():#QWidget):
     self.menu_handler.insert("Change Reference Frame", parent = move, callback = self.frameCb)
 
     meta = self.menu_handler.insert("Meta", parent = self.instance_menu_handle)
+    self.menu_handler.insert("Info", parent = meta, callback = self.infoInstanceCb)
     self.menu_handler.insert("Rename", parent = meta, callback = self.renameObjectInstanceCb)
     self.menu_handler.insert("Switch", parent = meta, callback = self.switchObjectDescriptionCb)
     self.menu_handler.insert("Copy", parent = meta, callback = self.copyObjectInstanceCb)
@@ -1400,13 +1094,12 @@ class InteractiveObjectMarker():#QWidget):
     self.menu_handler.insert("Keep Children", parent = delete, callback = self.deleteObjectInstanceCb)
     self.menu_handler.insert("Redirect Children", parent = delete, callback = self.deleteObjectInstanceCb)
     self.menu_handler.insert("Remove Children", parent = delete, callback = self.deleteObjectInstanceCb)
-    
     label = self.menu_handler.insert("Label", parent = meta)
     self.menu_handler.insert("Type",  parent = label, callback = self.labelObjectInstanceCb)
     self.menu_handler.insert("Alias", parent = label, callback = self.labelObjectInstanceCb)
     self.menu_handler.insert("Name", parent = label, callback = self.labelObjectInstanceCb)
-    
-    visu = self.menu_handler.insert("VisuInfo", parent = meta, callback = self.visuObjectInstanceCb)
+    self.menu_handler.insert("None", parent = label, callback = self.labelObjectInstanceCb)
+    self.menu_handler.insert("Move", parent = label, callback = self.moveLabelCb )
 
   def initDescriptionMenu(self):
     self.description_menu_handle = self.menu_handler.insert("Description")
@@ -1481,20 +1174,19 @@ class InteractiveObjectMarker():#QWidget):
 
   def createInteractiveMarker(self):
     self.marker = InteractiveMarker()
-
     self.marker.name = self.obj.name
-
     self.marker.header.frame_id = self.obj.name
     self.marker.scale = 1.0
     self.marker.description = "This is the interactive marker for object: " + self.obj.name
 
-    #if self.obj.alias:
-    #  marker_name = self.obj.alias
-    #else:
-    marker_name = self.obj.description.type
+    self.label = self.obj.description.type
+    self.label_pose = ROSPoseStamped()
+    self.label_pose.header.frame_id = self.obj.name
+    self.label_pose.pose.position.z += 1.0
 
-    createMenuControl(self.marker.controls, marker_name)
+    createMenuControl(self.marker.controls, self.label_pose, self.label)
     createVisuControl(self.marker.controls, self.obj, self.model_visu)
+
     self.server.insert(self.marker, self.processFeedback)
     self.menu_handler.apply( self.server, self.marker.name )
     self.server.applyChanges()
@@ -1532,7 +1224,7 @@ class InteractiveObjectMarker():#QWidget):
     self.geometry_movement_marker.scale = 1.0
     self.geometry_movement_marker.description = "This is a GeometryMovementMarker"
 
-    createMenuControl(self.geometry_movement_marker.controls, self.geometry_movement_marker.name)
+    createMenuControl(self.geometry_movement_marker.controls, pose, self.geometry_movement_marker.name)
     createModelVisuControl(self.geometry_movement_marker.controls, self.marker.name, model, model_visu)
     if type(model) == Point2DModel or type(model) == Pose2DModel or type(model) == Polygon2DModel:
       create3DMotionControl(self.geometry_movement_marker.controls, True)
@@ -1545,6 +1237,24 @@ class InteractiveObjectMarker():#QWidget):
     self.geometry_movement_menu_handler.apply( self.server, self.geometry_movement_marker.name)
     self.server.applyChanges()
 
+  def createLabelMovement(self):
+    self.label_movement_marker = InteractiveMarker()
+
+    self.label_movement_marker.name =  self.label
+    self.label_movement_marker.pose = self.label_pose.pose
+    self.label_movement_marker.header = self.label_pose.header
+    self.label_movement_marker.scale = 1.0
+    self.label_movement_marker.description = ""
+
+    createMenuControl(self.label_movement_marker.controls, self.label_pose, self.label_movement_marker.name)
+    create6DMotionControl(self.label_movement_marker.controls, True)
+
+    self.label_movement_menu_handler.insert("Save Changes", callback = self.saveLabelMovementCb)
+
+    self.server.insert(self.label_movement_marker, self.processLabelMovementFeedback)
+    self.label_movement_menu_handler.apply( self.server, self.label_movement_marker.name)
+    self.server.applyChanges()
+
   def initSubscriber(self):
     self.point2d_sub_ = rospy.Subscriber("clicked_point", PointStamped, self.point2dtopicCb)
     self.pose2d_sub_ = rospy.Subscriber("pose", PoseStamped, self.pose2dtopicCb)
@@ -1552,8 +1262,10 @@ class InteractiveObjectMarker():#QWidget):
     self.point3d_sub_ = rospy.Subscriber("clicked_point", PointStamped, self.point3dtopicCb)
     self.pose3d_sub_ = rospy.Subscriber("pose", PoseStamped, self.pose3dtopicCb)
     self.polygon3d_sub_ = rospy.Subscriber("polygon", PolygonStamped, self.polygon3dtopicCb)
-    
+
     self.color_sub_ = rospy.Subscriber("color_cmd", ColorCommand, self.colorCb)
+    self.label_sub_ = rospy.Subscriber("label_cmd", LabelCommand, self.labelCb)
+    self.print_sub_ = rospy.Subscriber("print_cmd", String, self.printLabelCb)
 
 ### Debug Node
 

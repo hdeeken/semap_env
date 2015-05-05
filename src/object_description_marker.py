@@ -21,7 +21,6 @@ from spatial_db_msgs.msg import ObjectInstanceOverview as ROSObjectInstanceOverv
 from spatial_db_ros.srv import *
 from tf.transformations import quaternion_matrix, random_quaternion, quaternion_from_matrix, euler_from_matrix, euler_matrix, quaternion_from_euler
 
-
 from visualization_msgs.msg import Marker, MarkerArray
 
 def create_object_description():
@@ -286,13 +285,6 @@ def create_text_marker(name, pose, color, scale, text, offset = [0,0,0]):
 
 ###
 ###
-
-def create_title_marker(object_name):
-  pose = ROSPoseStamped()
-  pose.header.frame_id = object_name
-  pose.pose.orientation.w = 1.0
-  marker = create_text_marker("Title", pose, [1.0, 1.0, 1.0, 1.0], [0.1, 0.1, 0.1], object_name)
-  return marker
 
 def create_geometry_collection_marker(collection, frame):
 
