@@ -4,7 +4,7 @@ import rospy, tf
 import roslib; roslib.load_manifest("spatial_environment")
 
 from visualization_msgs.msg import *
-from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
+from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped, Polygon
 from spatial_db_ros.srv import *
 from spatial_db_ros.service_calls import *
 from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
@@ -124,6 +124,27 @@ def lookupModelVisuConfig(desc):
     show_geo = True
     geo_color = [0.0, 1.0, 1.0, 1.0]
     geo_scale = [0.05, 0.05, 0.05]
+
+    if model.type == "FootprintBox":
+      show_geo = False
+      geo_color = [0.0, 0.0, 0.50, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
+    if model.type == "FootprintHull":
+      show_geo = False
+      geo_color = [0.0, 0.50, 0.0, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
+    if model.type == "AbsoluteFootprintBox":
+      show_geo = False
+      geo_color = [0.5, 0.0, 0.0, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
+    if model.type == "AbsoluteFootprintHull":
+      show_geo = False
+      geo_color = [0.5, 0.5, 0.0, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
     show_text = False
     text_color = [1.0, 1.0, 1.0, 1.0]
     text_scale = [0.1, 0.1, 0.1]
@@ -178,10 +199,32 @@ def lookupModelVisuConfig(desc):
     show_geo = True
     geo_color = [0.5, 1.0, 0.5, 1.0]
     geo_scale = [0.05, 0.05, 0.05]
+
+    if model.type == "BoundingBox":
+      show_geo = False
+      geo_color = [0.0, 0.0, 0.75, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
+    if model.type == "BoundingHull":
+      show_geo = False
+      geo_color = [0.0, 0.75, 0.0, 1.0]
+      geo_scale = [0.005, 0.005, 0.005]
+
+    if model.type == "AbsoluteBoundingBox":
+      show_geo = False
+      geo_color = [0.75, 0.0, 0.0, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+
+    if model.type == "AbsoluteBoundingHull":
+      show_geo = False
+      geo_color = [0.75, 0.75, 0.0, 1.0]
+      geo_scale = [0.005, 0.005, 0.005]
+
     show_text = False
     text_color = [1.0, 1.0, 1.0, 1.0]
     text_scale = [0.05, 0.05, 0.05]
     text_offset = [0.0, 0.0, 0.15]
+
     model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
 
   return model_dict
@@ -232,6 +275,9 @@ def create_model_visualization_marker(frame, model, model_visu):
       pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
       pose.pose = model.pose
+
+      if model.type == "AbsoluteFootprintBox" or model.type == "AbsoluteFootprintHull":
+        pose.header.frame_id = "world"
 
       if model_visu[model.type].show_geo:
         geo_marker = create_polygon_marker("Polygon2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
@@ -368,6 +414,9 @@ def create_object_visualization_marker(obj, model_visu):
 
       pose.pose = model.pose
 
+      if model.type == "AbsoluteFootprintBox" or model.type == "AbsoluteFootprintHull":
+        pose.header.frame_id = "world"
+
       if model_visu[model.type].show_geo:
         geo_marker = create_polygon_marker("Polygon2D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, model.geometry)
         array.markers.append(geo_marker)
@@ -440,15 +489,23 @@ def create_object_visualization_marker(obj, model_visu):
 
       pose.pose = model.pose
 
+      if model.type == "AbsoluteBoundingBox" or model.type == "AbsoluteBoundingHull":
+        pose.header.frame_id = "world"
+
       if model_visu[model.type].show_geo:
         for polygon in model.geometry.polygons:
-          geo_marker = create_polygon_marker("PolygonMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, polygon)
+          poly= ROSPolygon()
+
+          for point in polygon.vertex_indices:
+            poly.points.append(model.geometry.vertices[point])
+
+          geo_marker = create_polygon_marker("PolygonMesh3D", pose, model_visu[model.type].geo_color, model_visu[model.type].geo_scale, poly)
           array.markers.append(geo_marker)
 
       if model_visu[model.type].show_text:
         text_marker = create_text_marker("Label", pose, model_visu[model.type].text_color, model_visu[model.type].text_scale, model.type, model_visu[model.type].text_offset)
         array.markers.append(text_marker)
-        
+
     id = 0
     for m in array.markers:
       m.id = id

@@ -15,7 +15,7 @@ from spatial_environment.srv import *
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
 from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from spatial_db_msgs.msg import GeometryCollection
- 
+
 class ActiveObject:
   id = None
   name = None
@@ -53,7 +53,7 @@ class SpatialEnvironmentServices():#QMainWindow):
       password = rospy.get_param('~password')
       host = rospy.get_param('~host')
       database = rospy.get_param('~database')
-      
+
       initializeConnection(user, password, host, database, False)
 
       ## Active Objects
@@ -72,7 +72,7 @@ class SpatialEnvironmentServices():#QMainWindow):
     rospy.loginfo("SpatialEnv SRVs: activate_objects")
     self.deactivate_objects(req)
     get_res = call_get_object_instances(req.ids)
-    
+
     for obj in get_res.objects:
       now = rospy.Time.now()
       rospy.loginfo("Activate object: %s" % obj.name)
@@ -82,7 +82,7 @@ class SpatialEnvironmentServices():#QMainWindow):
     self.publishTF(None)
     rospy.loginfo("SpatialEnv SRVs: activate_objects - done")
     return ActivateObjectsResponse()
-  
+
   def reactivate_objects(self):
     rospy.loginfo("SpatialEnv SRVs: reactivate_objects")
     req = ActivateObjectsRequest()
@@ -91,7 +91,7 @@ class SpatialEnvironmentServices():#QMainWindow):
     self.activate_objects(req)
     res = ActivateAllObjectsResponse()
     rospy.loginfo("SpatialEnv SRVs: reactivate_objects - done")
-   
+
   def deactivate_objects(self, req):
     #rospy.loginfo("SpatialEnv SRVs: deactivate_objects")
     res = DeactivateObjectsResponse()
@@ -169,4 +169,4 @@ if __name__ == "__main__":
     services = SpatialEnvironmentServices()
     services.spin()
     #app.exec_()
-    
+

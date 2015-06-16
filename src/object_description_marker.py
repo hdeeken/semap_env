@@ -268,6 +268,19 @@ def create_mesh_marker(name, pose, color, scale, mesh):
     marker.points.append(mesh.vertices[triangle.vertex_indices[2]])
   return marker
 
+#def create_polygon_mesh_marker(name, pose, color, scale, mesh):
+  #markers = []
+
+  #for polygon in mesh.polygons:
+    #poly= Polygon()
+
+    #for point in polygon.vertex_indices:
+      #poly.points.append(mesh.vertices[point])
+
+    #markers.append(create_polygon_marker(name, pose, color, scale, poly)
+
+  #return markers
+
 def create_pose_marker(name, pose, color, scale):
   marker = create_marker(name, pose, color, scale)
   marker.type = marker.ARROW
