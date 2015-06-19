@@ -31,14 +31,21 @@ from visualization import *
 
 #### UNABHAENGIG ###
 
-def createVisuControl(controls, obj, visu):
+def createVisuControl(controls, obj, visu, absolute = False):
     control = InteractiveMarkerControl()
     control.name = "VisuControl"
+    
+    if absolute:
+      control.name = "AbsoluteVisuControl"
+      print 'CREATER'
     control.description = "This is the objects visualization."
     control.interaction_mode = InteractiveMarkerControl.NONE
     control.always_visible = True
-    markers = create_object_visualization_marker(obj, visu).markers
+    markers = create_object_visualization_marker(obj, visu, absolute).markers
     control.markers = markers
+    if absolute:
+      print 'CREATER2'
+      print markers
     controls.append(control)
 
 def createModelVisuControl(controls, frame, model, visu):
@@ -51,11 +58,13 @@ def createModelVisuControl(controls, frame, model, visu):
     control.markers = markers
     controls.append(control)
 
-def updateVisuControl(controls, obj, visu):
+def updateVisuControl(controls, obj, visu, absolute = False):
     for control in controls:
-      if control.name == "VisuControl":
+      if not absolute and control.name == "VisuControl":
         controls.remove(control)
-    createVisuControl(controls, obj, visu)
+      if absolute and control.name == "AbsoluteVisuControl":
+        controls.remove(control)
+    createVisuControl(controls, obj, visu, absolute)
 
 ### Motion Control
 
@@ -302,6 +311,7 @@ class InteractiveObjectMarker():#QWidget):
   tf_listener = None
 
   model_visu = {}
+  absolute_visu = {}
   model_entry = {}
   menu_handler = None
   geometry_menu_handle = None
@@ -342,6 +352,9 @@ class InteractiveObjectMarker():#QWidget):
     #QWidget.__init__(self)
     self.obj = obj
     self.model_visu = lookupModelVisuConfig(self.obj.description)
+    self.absolute_visu = lookupModelVisuConfig(self.obj.absolute, True)
+
+    print self.absolute_visu
     self.server = server
     self.app = app
 
@@ -476,7 +489,7 @@ class InteractiveObjectMarker():#QWidget):
       rospy.logwarn('showGeometryModelCb: Unknown MenuEntry %s was called.' % menu_handler.getTitle(handle))
 
     menu_handler.reApply( server )
-    updateVisuControl(self.marker.controls, self.obj, self.model_visu)
+    updateVisuControl(self.marker.controls, self.obj, self.model_visu, False)
     server.applyChanges()
 
   def removeGeometryModelCb(self, feedback):
@@ -1066,6 +1079,11 @@ class InteractiveObjectMarker():#QWidget):
     move_3d = self.menu_handler.insert("3D", parent = move, callback = self.moveObjectInstanceCb)
     self.menu_handler.setCheckState(move_3d, MenuHandler.UNCHECKED)
 
+    show = self.menu_handler.insert("Show", parent = self.instance_menu_handle)
+    self.menu_handler.insert("All", parent = show, callback = self.showGeometryModelCb)
+    self.menu_handler.insert("None", parent = show, callback = self.showGeometryModelCb)
+    self.menu_handler.insert("Inverted", parent = show, callback = self.showGeometryModelCb)
+
     rotate = self.menu_handler.insert("Rotate...", parent = move)
     roll = self.menu_handler.insert("Roll", parent = rotate)
     self.menu_handler.insert("90", parent = roll, callback = self.rotateObjectInstanceCb)
@@ -1108,7 +1126,7 @@ class InteractiveObjectMarker():#QWidget):
     self.menu_handler.setVisible(save, False)
 
     show = self.menu_handler.insert("Show", parent = self.description_menu_handle)
-    self.menu_handler.insert("All", parent =show, callback = self.showGeometryModelCb)
+    self.menu_handler.insert("All", parent = show, callback = self.showGeometryModelCb)
     self.menu_handler.insert("None", parent = show, callback = self.showGeometryModelCb)
     self.menu_handler.insert("Inverted", parent = show, callback = self.showGeometryModelCb)
 
@@ -1185,7 +1203,8 @@ class InteractiveObjectMarker():#QWidget):
     self.label_pose.pose.position.z += 1.0
 
     createMenuControl(self.marker.controls, self.label_pose, self.label)
-    createVisuControl(self.marker.controls, self.obj, self.model_visu)
+    createVisuControl(self.marker.controls, self.obj, self.model_visu)    
+    createVisuControl(self.marker.controls, self.obj, self.absolute_visu, True)
 
     self.server.insert(self.marker, self.processFeedback)
     self.menu_handler.apply( self.server, self.marker.name )

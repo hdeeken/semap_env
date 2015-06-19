@@ -4,7 +4,7 @@
   <arg name="user" default="hdeeken"/>
   <arg name="password" default="mYdB"/>
   <arg name="host" default="localhost"/>
-  <arg name="database" default="semap_devel"/>
+  <arg name="database" default="semap_devel2"/>
 
   <include file="$(find spatial_db_ros)/launch/spatial_db_services.launch">
     <arg name="user" value="$(arg user)"/>

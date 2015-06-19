@@ -72,11 +72,15 @@ class SpatialEnvironmentServices():#QMainWindow):
     rospy.loginfo("SpatialEnv SRVs: activate_objects")
     self.deactivate_objects(req)
     get_res = call_get_object_instances(req.ids)
-
+    #print get_res
     for obj in get_res.objects:
       now = rospy.Time.now()
       rospy.loginfo("Activate object: %s" % obj.name)
+      print 'pre active', obj.absolute.type
+      print 'pre active', obj.description.type
       active_object = ActiveObject(obj.id, obj.name, obj, InteractiveObjectMarker(obj, self.server, self ))
+      print 'post active', obj.absolute.type
+      print 'post active', obj.description.type
       self.active_objects[obj.name] = active_object
       rospy.loginfo("Took %f seconds" % (rospy.Time.now() - now).to_sec())
     self.publishTF(None)

@@ -94,7 +94,7 @@ class ModelVisu:
                                         #self.text_offset)
     return string
 
-def lookupModelVisuConfig(desc):
+def lookupModelVisuConfig(desc, absolute = False):
   model_dict = {}
   for model in desc.point2d_models:
     type = model.type
@@ -135,12 +135,12 @@ def lookupModelVisuConfig(desc):
       geo_color = [0.0, 0.50, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
-    if model.type == "AbsoluteFootprintBox":
+    if model.type == "FootprintBox" and absolute:
       show_geo = False
       geo_color = [0.5, 0.0, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
-    if model.type == "AbsoluteFootprintHull":
+    if model.type == "FootprintHull" and absolute:
       show_geo = False
       geo_color = [0.5, 0.5, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
@@ -188,6 +188,11 @@ def lookupModelVisuConfig(desc):
     show_geo = True
     geo_color = [0.0, 0.5, 0.5, 1.0]
     geo_scale = [1.0, 1.0, 1.0]
+
+    if absolute:
+      geo_color = [1.0, 0.5, 0.5, 1.0]
+      geo_scale = [1.0, 1.0, 1.0]
+
     show_text = False
     text_color = [1.0, 1.0, 1.0, 1.0]
     text_scale = [0.1, 0.1, 0.1]
@@ -198,8 +203,12 @@ def lookupModelVisuConfig(desc):
     id = model.id
     show_geo = True
     geo_color = [0.5, 1.0, 0.5, 1.0]
-    geo_scale = [0.05, 0.05, 0.05]
+    geo_scale = [0.01, 0.01, 0.01]
 
+    if absolute:
+      geo_color = [1.0, 0.5, 0.5, 1.0]
+      geo_scale = [0.01, 0.01, 0.01]
+      
     if model.type == "BoundingBox":
       show_geo = False
       geo_color = [0.0, 0.0, 0.75, 1.0]
@@ -210,12 +219,12 @@ def lookupModelVisuConfig(desc):
       geo_color = [0.0, 0.75, 0.0, 1.0]
       geo_scale = [0.005, 0.005, 0.005]
 
-    if model.type == "AbsoluteBoundingBox":
+    if model.type == "BoundingBox" and absolute:
       show_geo = False
       geo_color = [0.75, 0.0, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
-    if model.type == "AbsoluteBoundingHull":
+    if model.type == "BoundingHull" and absolute:
       show_geo = False
       geo_color = [0.75, 0.75, 0.0, 1.0]
       geo_scale = [0.005, 0.005, 0.005]
@@ -364,14 +373,20 @@ def create_model_visualization_marker(frame, model, model_visu):
 
     return array
 
-def create_object_visualization_marker(obj, model_visu):
+def create_object_visualization_marker(obj, model_visu, absolute = False):
 
     array = MarkerArray()
-    desc = obj.description
+
+    if absolute:
+      desc = obj.absolute
+      frame = "world"
+    else:
+      desc = obj.description
+      frame = obj.name
 
     for model in desc.point2d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
       pose.pose.position.x = model.geometry.x
       pose.pose.position.y = model.geometry.y
@@ -387,7 +402,7 @@ def create_object_visualization_marker(obj, model_visu):
 
     for model in desc.pose2d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       quat = quaternion_from_euler(0, 0, model.pose.theta)
@@ -409,7 +424,7 @@ def create_object_visualization_marker(obj, model_visu):
 
     for model in desc.polygon2d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose = model.pose
@@ -426,7 +441,7 @@ def create_object_visualization_marker(obj, model_visu):
 
     for model in desc.point3d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose.position = model.geometry
@@ -441,7 +456,7 @@ def create_object_visualization_marker(obj, model_visu):
 
     for model in desc.pose3d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose = model.pose
@@ -455,7 +470,7 @@ def create_object_visualization_marker(obj, model_visu):
         array.markers.append(text_marker)
     for model in desc.polygon3d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose = model.pose
@@ -469,7 +484,7 @@ def create_object_visualization_marker(obj, model_visu):
         array.markers.append(text_marker)
     for model in desc.trianglemesh3d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose = model.pose
@@ -484,7 +499,7 @@ def create_object_visualization_marker(obj, model_visu):
 
     for model in desc.polygonmesh3d_models:
       pose = ROSPoseStamped()
-      pose.header.frame_id = obj.name
+      pose.header.frame_id = frame
       pose.pose.orientation.w = 1.0
 
       pose.pose = model.pose
