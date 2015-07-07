@@ -106,6 +106,12 @@ def lookupModelVisuConfig(desc, absolute = False):
     text_color = [1.0, 1.0, 1.0, 1.0]
     text_scale = [0.1, 0.1, 0.1]
     text_offset = [0.0, 0.0, 0.15]
+
+    if model.type == "Position2D" and absolute:
+      show_geo = True
+      geo_color = [0.5, 0.5, 0.0, 1.0]
+      geo_scale = [0.1, 0.1, 0.1]
+
     model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
   for model in desc.pose2d_models:
     type = model.type
@@ -126,22 +132,22 @@ def lookupModelVisuConfig(desc, absolute = False):
     geo_scale = [0.05, 0.05, 0.05]
 
     if model.type == "FootprintBox":
-      show_geo = False
+      show_geo = True
       geo_color = [0.0, 0.0, 0.50, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
     if model.type == "FootprintHull":
-      show_geo = False
+      show_geo = True
       geo_color = [0.0, 0.50, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
     if model.type == "FootprintBox" and absolute:
-      show_geo = False
+      show_geo = True
       geo_color = [0.5, 0.0, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
     if model.type == "FootprintHull" and absolute:
-      show_geo = False
+      show_geo = True
       geo_color = [0.5, 0.5, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
@@ -160,6 +166,12 @@ def lookupModelVisuConfig(desc, absolute = False):
     text_color = [1.0, 1.0, 1.0, 1.0]
     text_scale = [0.1, 0.1, 0.1]
     text_offset = [0.0, 0.0, 0.15]
+
+    if model.type == "Position3D" and absolute:
+      show_geo = True
+      geo_color = [0.75, 0.5, 6.0, 1.0]
+      geo_scale = [0.21, 0.21, 0.21]
+
     model_dict[model.type] = ModelVisu(type, id, model, show_geo, geo_color, geo_scale, show_text, text_color, text_scale, text_offset)
   for model in desc.pose3d_models:
     type = model.type
@@ -208,24 +220,24 @@ def lookupModelVisuConfig(desc, absolute = False):
     if absolute:
       geo_color = [1.0, 0.5, 0.5, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
-      
+
     if model.type == "BoundingBox":
-      show_geo = False
+      show_geo = True
       geo_color = [0.0, 0.0, 0.75, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
     if model.type == "BoundingHull":
-      show_geo = False
+      show_geo = True
       geo_color = [0.0, 0.75, 0.0, 1.0]
       geo_scale = [0.005, 0.005, 0.005]
 
     if model.type == "BoundingBox" and absolute:
-      show_geo = False
+      show_geo = True
       geo_color = [0.75, 0.0, 0.0, 1.0]
       geo_scale = [0.01, 0.01, 0.01]
 
     if model.type == "BoundingHull" and absolute:
-      show_geo = False
+      show_geo = True
       geo_color = [0.75, 0.75, 0.0, 1.0]
       geo_scale = [0.005, 0.005, 0.005]
 
@@ -285,7 +297,7 @@ def create_model_visualization_marker(frame, model, model_visu):
       pose.pose.orientation.w = 1.0
       pose.pose = model.pose
 
-      if model.type == "AbsoluteFootprintBox" or model.type == "AbsoluteFootprintHull":
+      if absolute:
         pose.header.frame_id = "world"
 
       if model_visu[model.type].show_geo:
@@ -429,7 +441,7 @@ def create_object_visualization_marker(obj, model_visu, absolute = False):
 
       pose.pose = model.pose
 
-      if model.type == "AbsoluteFootprintBox" or model.type == "AbsoluteFootprintHull":
+      if absolute:
         pose.header.frame_id = "world"
 
       if model_visu[model.type].show_geo:
@@ -504,7 +516,7 @@ def create_object_visualization_marker(obj, model_visu, absolute = False):
 
       pose.pose = model.pose
 
-      if model.type == "AbsoluteBoundingBox" or model.type == "AbsoluteBoundingHull":
+      if absolute:
         pose.header.frame_id = "world"
 
       if model_visu[model.type].show_geo:

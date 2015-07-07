@@ -34,18 +34,18 @@ from visualization import *
 def createVisuControl(controls, obj, visu, absolute = False):
     control = InteractiveMarkerControl()
     control.name = "VisuControl"
-    
+
     if absolute:
       control.name = "AbsoluteVisuControl"
-      print 'CREATER'
+      #print 'CREATER'
     control.description = "This is the objects visualization."
     control.interaction_mode = InteractiveMarkerControl.NONE
     control.always_visible = True
     markers = create_object_visualization_marker(obj, visu, absolute).markers
     control.markers = markers
-    if absolute:
-      print 'CREATER2'
-      print markers
+    #if absolute:
+      #print 'CREATER2'
+      #print markers
     controls.append(control)
 
 def createModelVisuControl(controls, frame, model, visu):
@@ -446,7 +446,11 @@ class InteractiveObjectMarker():#QWidget):
     menu_handler = self.menu_handler
     server = self.server
 
+    menu_handle = findParent(menu_handler, self.instance_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, handle)
+
+    print 'MENU', menu_handler.getTitle(menu_handle)
+    print 'model', menu_handler.getTitle(model_handle)
 
     if menu_handler.getTitle(model_handle) in self.model_visu.keys():
       state = menu_handler.getCheckState( model_handle )
@@ -726,9 +730,9 @@ class InteractiveObjectMarker():#QWidget):
     rotate_handle = findParent(menu_handler, self.models_menu_handle, axis_handle)
     move_handle = findParent(menu_handler, self.models_menu_handle, rotate_handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
-    model_id = self.model_visu[menu_handler.getTitle(model_handle)].id
+    model_type = self.model_visu[menu_handler.getTitle(model_handle)].type
     pose = getRotation( menu_handler.getTitle(axis_handle), menu_handler.getTitle(degree_handle))
-    call_update_geometry_model_pose(model_id, pose)
+    call_update_geometry_model_pose(self.obj.description.id, model_type, pose)
     self.update()
 
   def moveLabelCb(self, feedback):
@@ -846,6 +850,7 @@ class InteractiveObjectMarker():#QWidget):
         widget = SetGeometryModelTypeWidget()
         widget.show()
         app.exec_()
+
 
         model.type = widget.getType()
         call_add_point_2d_model(self.obj.description.id, model)
@@ -1203,7 +1208,7 @@ class InteractiveObjectMarker():#QWidget):
     self.label_pose.pose.position.z += 1.0
 
     createMenuControl(self.marker.controls, self.label_pose, self.label)
-    createVisuControl(self.marker.controls, self.obj, self.model_visu)    
+    createVisuControl(self.marker.controls, self.obj, self.model_visu)
     createVisuControl(self.marker.controls, self.obj, self.absolute_visu, True)
 
     self.server.insert(self.marker, self.processFeedback)
