@@ -8,9 +8,11 @@ import roslib; roslib.load_manifest('spatial_environment')
 
 from geometry_msgs.msg import Point as ROSPoint
 from geometry_msgs.msg import Point32 as ROSPoint32
-from shape_msgs.msg import Mesh as ROSMesh
-from shape_msgs.msg import MeshTriangle as ROSMeshTriangle
-from spatial_db_msgs.msg import PolygonMesh as ROSPolygonMesh
+from mesh_msgs.msg import TriangleMesh as ROSMeshTriangleMesh
+from mesh_msgs.msg import TriangleIndices as ROSTriangleIndices
+
+from mesh_msgs.msg import PolygonIndices as ROSPolygonIndices
+from mesh_msgs.msg import PolygonMesh as ROSPolygonMesh
 
 def importFromFileToTIN(path):
   scene = pyassimp.load(path)
@@ -46,7 +48,7 @@ def importFromFileToMesh(path):
   else:
     faces = scene.meshes[0].faces
     vertices = scene.meshes[0].vertices
-    result = ROSMesh()
+    result = ROSMeshTriangleMesh()
     for vertex in vertices:
       ros_point = ROSPoint()
       ros_point.x = vertex[0]
@@ -56,7 +58,7 @@ def importFromFileToMesh(path):
     for face in faces:
       if len(face.indices) != 3:
         print "WARNING: Triangle contained $s instead of 3 indicies", len(face.indices)
-      ros_triangle = ROSMeshTriangle()
+      ros_triangle = ROSTriangleIndices()
       ros_triangle.vertex_indices = [face.indices[0], face.indices[1], face.indices[2]]
       result.triangles.append(ros_triangle)
   pyassimp.release(scene)
