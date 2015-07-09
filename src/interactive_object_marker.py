@@ -354,7 +354,7 @@ class InteractiveObjectMarker():#QWidget):
     self.model_visu = lookupModelVisuConfig(self.obj.description)
     self.absolute_visu = lookupModelVisuConfig(self.obj.absolute, True)
 
-    print self.absolute_visu
+    #print self.absolute_visu
     self.server = server
     self.app = app
 
@@ -376,7 +376,7 @@ class InteractiveObjectMarker():#QWidget):
 ## Callbacks
 
   def labelObjectInstanceCb(self, feedback):
-    print ' reassign label'
+    #print ' reassign label'
     handle = feedback.menu_entry_id
     menu_handler = self.menu_handler
     server = self.server
@@ -388,7 +388,7 @@ class InteractiveObjectMarker():#QWidget):
       if self.obj.alias != "":
         name = self.obj.alias
       else:
-        print "labeled object by type, there's no alias"
+        #print "labeled object by type, there's no alias"
         name = self.obj.description.type
     elif menu_handler.getTitle(handle) == "Name":
       name = self.obj.name
@@ -426,18 +426,18 @@ class InteractiveObjectMarker():#QWidget):
           mp += ", " + str(feedback.mouse_point.z)
           mp += " in frame " + feedback.header.frame_id
 
-      if feedback.event_type == InteractiveMarkerFeedback.BUTTON_CLICK:
-          rospy.loginfo( s + ": button click" + mp + "." )
-      elif feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
-          rospy.loginfo( s + ": menu item " + str(feedback.menu_entry_id) + " clicked" + mp + "." )
-      elif feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
-          rospy.loginfo( s + ": pose changed")
-          rospy.loginfo( feedback.pose)
+      #if feedback.event_type == InteractiveMarkerFeedback.BUTTON_CLICK:
+      #    rospy.loginfo( s + ": button click" + mp + "." )
+      #elif feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
+      #    rospy.loginfo( s + ": menu item " + str(feedback.menu_entry_id) + " clicked" + mp + "." )
+      if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
+          #rospy.loginfo( s + ": pose changed")
+          #rospy.loginfo( feedback.pose)
           self.current_pose = feedback.pose
-      elif feedback.event_type == InteractiveMarkerFeedback.MOUSE_DOWN:
-          rospy.loginfo( s + ": mouse down" + mp + "." )
-      elif feedback.event_type == InteractiveMarkerFeedback.MOUSE_UP:
-          rospy.loginfo( s + ": mouse up" + mp + "." )
+      #elif feedback.event_type == InteractiveMarkerFeedback.MOUSE_DOWN:
+      #    rospy.loginfo( s + ": mouse down" + mp + "." )
+      #elif feedback.event_type == InteractiveMarkerFeedback.MOUSE_UP:
+          #rospy.loginfo( s + ": mouse up" + mp + "." )
 
       self.server.applyChanges()
 
@@ -449,8 +449,8 @@ class InteractiveObjectMarker():#QWidget):
     menu_handle = findParent(menu_handler, self.instance_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, handle)
 
-    print 'MENU', menu_handler.getTitle(menu_handle)
-    print 'model', menu_handler.getTitle(model_handle)
+    #print 'MENU', menu_handler.getTitle(menu_handle)
+    #print 'model', menu_handler.getTitle(model_handle)
 
     if menu_handler.getTitle(model_handle) in self.model_visu.keys():
       state = menu_handler.getCheckState( model_handle )
@@ -624,9 +624,9 @@ class InteractiveObjectMarker():#QWidget):
 
   def rotateObjectInstanceCb(self, feedback):
     axis_handle = findParent(self.menu_handler, self.instance_menu_handle,  feedback.menu_entry_id)
-    print 'handle', self.menu_handler.getTitle(axis_handle), self.menu_handler.getTitle(feedback.menu_entry_id)
+    #print 'handle', self.menu_handler.getTitle(axis_handle), self.menu_handler.getTitle(feedback.menu_entry_id)
     pose = getRotation(self.menu_handler.getTitle(axis_handle), self.menu_handler.getTitle(feedback.menu_entry_id))
-    print 'pose',pose
+    #print 'pose',pose
     call_update_transform(self.obj.id, pose)
     self.update()
 
@@ -785,11 +785,11 @@ class InteractiveObjectMarker():#QWidget):
     widget.show()
     app.exec_()
 
-    print 'get choices from wid'
+   # print 'get choices from wid'
     desc_name, desc_id = widget.getChoice()
-    print 'got choices from wid'
+  #  print 'got choices from wid'
     del app, widget
-    print 'got:', desc_name, desc_id
+   # print 'got:', desc_name, desc_id
     if(desc_id == -1):
       new_desc = ROSObjectDescription()
       new_desc.type = desc_name
@@ -1016,12 +1016,12 @@ class InteractiveObjectMarker():#QWidget):
 
   def labelCb(self, feedback):
 
-    print 'label it'
+    #print 'label it'
 
     if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
 
       if feedback.set_pose:
-        print 'sette dat pose'
+        #print 'sette dat pose'
         self.label_pose.pose = feedback.label_pose
         updateMenuControl(self.marker.controls, self.label_pose, self.label)
 
@@ -1033,7 +1033,7 @@ class InteractiveObjectMarker():#QWidget):
           self.label = self.obj.alias
           updateMenuControl(self.marker.controls, self.label_pose, self.label)
         else:
-          print "labeled object by type, there's no alias"
+          #print "labeled object by type, there's no alias"
           self.label = self.obj.description.type
           updateMenuControl(self.marker.controls, self.label_pose, self.label)
       elif feedback.label_type == "Name":

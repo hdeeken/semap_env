@@ -69,22 +69,19 @@ class SpatialEnvironmentServices():#QMainWindow):
 
   ### Services
   def activate_objects(self, req):
-    rospy.loginfo("SpatialEnv SRVs: activate_objects")
-    self.deactivate_objects(req)
-    get_res = call_get_object_instances(req.ids)
-    #print get_res
-    for obj in get_res.objects:
-      now = rospy.Time.now()
-      rospy.loginfo("Activate object: %s" % obj.name)
-      print 'pre active', obj.absolute.type
-      print 'pre active', obj.description.type
-      active_object = ActiveObject(obj.id, obj.name, obj, InteractiveObjectMarker(obj, self.server, self ))
-      print 'post active', obj.absolute.type
-      print 'post active', obj.description.type
-      self.active_objects[obj.name] = active_object
-      rospy.loginfo("Took %f seconds" % (rospy.Time.now() - now).to_sec())
-    self.publishTF(None)
-    rospy.loginfo("SpatialEnv SRVs: activate_objects - done")
+    if len( req.ids) > 0:
+      rospy.loginfo("SpatialEnv SRVs: activate_objects")
+      self.deactivate_objects(req)
+      get_res = call_get_object_instances(req.ids)
+      #print get_res
+      for obj in get_res.objects:
+        now = rospy.Time.now()
+        rospy.loginfo("Activate object: %s" % obj.name)
+        active_object = ActiveObject(obj.id, obj.name, obj, InteractiveObjectMarker(obj, self.server, self ))
+        self.active_objects[obj.name] = active_object
+        rospy.loginfo("Took %f seconds" % (rospy.Time.now() - now).to_sec())
+      self.publishTF(None)
+      rospy.loginfo("SpatialEnv SRVs: activate_objects - done")
     return ActivateObjectsResponse()
 
   def reactivate_objects(self):
@@ -97,7 +94,7 @@ class SpatialEnvironmentServices():#QMainWindow):
     rospy.loginfo("SpatialEnv SRVs: reactivate_objects - done")
 
   def deactivate_objects(self, req):
-    #rospy.loginfo("SpatialEnv SRVs: deactivate_objects")
+    rospy.loginfo("SpatialEnv SRVs: deactivate_objects")
     res = DeactivateObjectsResponse()
     for key in self.active_objects.keys():
       if self.active_objects[key].id in req.ids:
@@ -107,7 +104,7 @@ class SpatialEnvironmentServices():#QMainWindow):
     return res
 
   def deactivate_all_objects(self, req):
-    #rospy.loginfo("SpatialEnv SRVs: deactivate_all_objects")
+    rospy.loginfo("SpatialEnv SRVs: deactivate_all_objects")
     self.active_objects = {}
     self.publishTF(None)
     return DeactivateAllObjectsResponse()
@@ -115,7 +112,6 @@ class SpatialEnvironmentServices():#QMainWindow):
   def activate_all_objects(self, req):
       rospy.loginfo("SpatialEnv SRVs: activate_all_objects")
       ids = db().query(ObjectInstance.id).all()
-      print 'got ids', ids
       req = ActivateObjectsRequest()
       req.ids = [id for id, in ids]
       self.activate_objects(req)
