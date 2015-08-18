@@ -9,6 +9,18 @@ import rospy
 
 from spatial_environment.srv import *
 
+def call_refresh_objects(ids):
+  try:
+    rospy.wait_for_service('refresh_objects')
+    call = rospy.ServiceProxy('refresh_objects', ActivateObjects)
+    request = ActivateObjectsRequest()
+    request.ids = ids
+    response = call(request)
+    rospy.loginfo('RefreshObjects service call succeeded!')
+    return response
+  except rospy.ServiceException as e:
+      return None, "RefreshObjects service call failed: %s" % e
+
 def call_activate_objects(ids):
   try:
     rospy.wait_for_service('activate_objects')

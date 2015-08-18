@@ -19,7 +19,9 @@ from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
 from std_msgs.msg import String
 from spatial_db_ros.srv import *
 from spatial_db_ros.service_calls import *
-from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
+from spatial_db_ros.instance_srv_calls import *
+from spatial_db_ros.description_srv_calls import *
+from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel, GeometryModelSet
 from spatial_db_msgs.msg import ColorCommand, LabelCommand
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
 from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
@@ -29,287 +31,17 @@ from spatial_environment.service_calls import *
 from object_description_marker import *
 from visualization import *
 
-#### UNABHAENGIG ###
+from shared_marker_util import *
 
-def createVisuControl(controls, obj, visu, absolute = False):
-    control = InteractiveMarkerControl()
-    control.name = "VisuControl"
-
-    if absolute:
-      control.name = "AbsoluteVisuControl"
-      #print 'CREATER'
-    control.description = "This is the objects visualization."
-    control.interaction_mode = InteractiveMarkerControl.NONE
-    control.always_visible = True
-    markers = create_object_visualization_marker(obj, visu, absolute).markers
-    control.markers = markers
-    #if absolute:
-      #print 'CREATER2'
-      #print markers
-    controls.append(control)
-
-def createModelVisuControl(controls, frame, model, visu):
-    control = InteractiveMarkerControl()
-    control.name = "ModelVisuControl"
-    control.description = "This is the model visualization."
-    control.interaction_mode = InteractiveMarkerControl.NONE
-    control.always_visible = True
-    markers = create_model_visualization_marker(frame, model, visu).markers
-    control.markers = markers
-    controls.append(control)
-
-def updateVisuControl(controls, obj, visu, absolute = False):
-    for control in controls:
-      if not absolute and control.name == "VisuControl":
-        controls.remove(control)
-      if absolute and control.name == "AbsoluteVisuControl":
-        controls.remove(control)
-    createVisuControl(controls, obj, visu, absolute)
-
-### Motion Control
-
-def create6DMotionControl(controls, fixed):
-    control = InteractiveMarkerControl()
-    control.orientation.x = 1
-    control.orientation.y = 0
-    control.orientation.z = 0
-    control.orientation.w = 1
-    control.name = "rotate_x"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 1
-    control.orientation.y = 0
-    control.orientation.z = 0
-    control.name = "move_x"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 1
-    control.orientation.z = 0
-    control.name = "rotate_z"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 1
-    control.orientation.z = 0
-    control.name = "move_z"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 0
-    control.orientation.z = 1
-    control.name = "rotate_y"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 0
-    control.orientation.z = 1
-    control.name = "move_y"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-def create3DMotionControl(controls, fixed):
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 1
-    control.orientation.y = 0
-    control.orientation.z = 0
-    control.name = "move_x"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 1
-    control.orientation.z = 0
-    control.name = "rotate_z"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 0
-    control.orientation.z = 1
-    control.name = "move_y"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    control.always_visible = True
-    if fixed:
-      control.orientation_mode = InteractiveMarkerControl.FIXED
-    controls.append(control)
-
-def removeControl(controls, name):
-    for control in controls:
-      if control.name == name:
-        controls.remove(control)
-
-def createMenuControl(controls, pose, name):
-    control = InteractiveMarkerControl()
-    control.interaction_mode = InteractiveMarkerControl.MENU
-    control.name = "Menu"
-    control.description= name
-    control.always_visible = True
-    marker = create_text_marker("Title", pose, [1.0, 1.0, 1.0, 1.0], [0.015, 0.15, 0.15], name)
-    control.markers.append(marker)
-    controls.append(control)
-
-def updateMenuControl(controls, pose, name):
-    for control in controls:
-      if control.name == "Menu":
-        controls.remove(control)
-    createMenuControl(controls, pose, name)
-
-def listControls(controls):
-    for control in controls:
-      print control.name
-
-## Menu Util
-
-def setTitle(menu_handler, entry_id, title):
-  menu_handler.entry_contexts_[entry_id].title = title
-
-def findParent(menu_handler, ancestor, child):
-  if len(menu_handler.entry_contexts_[ancestor].sub_entries) > 0:
-    for descendant in menu_handler.entry_contexts_[ancestor].sub_entries:
-      if descendant == child:
-        return ancestor
-      else:
-        parent = findParent(menu_handler, descendant, child)
-        if parent:
-          return parent
-        else:
-          continue
-  else:
-      return None
-
-def transformMesh(mesh, modifier):
-    for vertex in mesh.vertices:
-      vertex.x *= modifier[0]
-      vertex.y *= modifier[1]
-      vertex.z *= modifier[2]
-
-    return mesh
-
-####################
-####################
-
-def switchCheckState(menu_handler, handle):
-  state = menu_handler.getCheckState( handle )
-
-  if state == MenuHandler.CHECKED:
-    menu_handler.setCheckState( handle, MenuHandler.UNCHECKED )
-  else:
-    menu_handler.setCheckState( handle, MenuHandler.CHECKED )
-
-def transformPolygonStamped(tf_listener, frame, polygon):
-
-  transformed_polygon = PolygonStamped()
-  transformed_polygon.header.frame_id = frame
-
-  try:
-    tf_listener.waitForTransform(frame, polygon.header.frame_id, rospy.Time.now(), rospy.Duration(4.0))
-
-    old_point = PointStamped()
-    old_point.header = polygon.header;
-    for point in polygon.polygon.points:
-      old_point.point = point
-      new_point = tf_listener.transformPoint(frame, old_point)
-      transformed_polygon.polygon.points.append(new_point.point)
-
-    return transformed_polygon
-
-  except tf.Exception as e:
-    print "some tf exception happened %s" % e
-
-def getRotation(axis, degree):
-
-    quaternion = None
-
-    if axis == "Roll":
-      if degree == "90":
-        quaternion = tf.transformations.quaternion_from_euler(radians(90), 0, 0, 'sxyz')
-      elif degree == "180":
-        quaternion = tf.transformations.quaternion_from_euler(radians(180), 0, 0, 'sxyz')
-      elif degree == "270":
-        quaternion = tf.transformations.quaternion_from_euler(radians(270), 0, 0, 'sxyz')
-    elif axis == "Pitch":
-      if degree == "90":
-        quaternion = tf.transformations.quaternion_from_euler(0, radians(90), 0, 'sxyz')
-      elif degree == "180":
-        quaternion = tf.transformations.quaternion_from_euler(0, radians(180), 0, 'sxyz')
-      elif degree == "270":
-        quaternion = tf.transformations.quaternion_from_euler(0, radians(270), 0, 'sxyz')
-    elif axis == "Yaw":
-      if degree == "90":
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, radians(90), 'sxyz')
-      elif degree == "180":
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, radians(0), 'sxyz')
-      elif degree == "270":
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, radians(270), 'sxyz')
-
-    pose = Pose()
-    pose.position.x = 0.0
-    pose.position.y = 0.0
-    pose.position.z = 0.0
-    pose.orientation.x = quaternion[0]
-    pose.orientation.y = quaternion[1]
-    pose.orientation.z = quaternion[2]
-    pose.orientation.w = quaternion[3]
-
-    return pose
-
-class InteractiveObjectMarker():#QWidget):
-  app = None
+class InteractiveObjectMarker():
   server = None
   obj = None
   marker = None
   geometry_movement_marker = None
   geometry_movement_menu_handler = None
 
-
   tf_listener = None
-
+  visu_config = None
   model_visu = {}
   absolute_visu = {}
   model_entry = {}
@@ -348,25 +80,26 @@ class InteractiveObjectMarker():#QWidget):
   process_pose3d_ = False
   process_polygon3d_ = False
 
-  def __init__(self, obj, server, app):
-    #QWidget.__init__(self)
+  def __init__(self, obj, server, visu_config):
     self.obj = obj
-    self.model_visu = lookupModelVisuConfig(self.obj.description)
-    self.absolute_visu = lookupModelVisuConfig(self.obj.absolute, True)
 
-    #print self.absolute_visu
+    if visu_config:
+      self.visu_config = visu_config
+    else:
+      self.visu_config = InstVisu()
+      self.visu_config.relative = DescVisu()
+      self.visu_config.absolute = DescVisu()
+      self.visu_config.relative.geometries = defaultRelativeDescriptionVisu(self.obj.description.geometries)
+      self.visu_config.relative.abstractions = defaultRelativeAbstractionVisu(self.obj.description.abstractions)
+      self.visu_config.absolute.geometries = defaultAbsoluteDescriptionVisu(self.obj.absolute.geometries)
+      self.visu_config.absolute.abstractions = defaultAbsoluteAbstractionVisu(self.obj.absolute.abstractions)
+
     self.server = server
-    self.app = app
-
     self.tf_listener = tf.TransformListener()
     self.initSubscriber();
-
     self.menu_handler = MenuHandler()
     self.geometry_movement_menu_handler = MenuHandler()
     self.label_movement_menu_handler = MenuHandler()
-
-    #save = self.menu_handler.insert("Save Changes", callback = self.saveChangesCb)
-    #self.menu_handler.setVisible(save, False)
 
     self.initInstanceMenu()
     self.initDescriptionMenu()
@@ -376,7 +109,6 @@ class InteractiveObjectMarker():#QWidget):
 ## Callbacks
 
   def labelObjectInstanceCb(self, feedback):
-    #print ' reassign label'
     handle = feedback.menu_entry_id
     menu_handler = self.menu_handler
     server = self.server
@@ -388,7 +120,7 @@ class InteractiveObjectMarker():#QWidget):
       if self.obj.alias != "":
         name = self.obj.alias
       else:
-        #print "labeled object by type, there's no alias"
+        print "labeled object by type, there's no alias"
         name = self.obj.description.type
     elif menu_handler.getTitle(handle) == "Name":
       name = self.obj.name
@@ -400,7 +132,7 @@ class InteractiveObjectMarker():#QWidget):
 
     updateMenuControl(self.marker.controls, self.label_pose, name)
     server.applyChanges()
-    #self.update()
+    self.update()
 
   def infoInstanceCb(self, feedback):
     print "Id:", self.obj.id, "Name:", self.obj.name, "Alias:", self.obj.alias, "Type:", self.obj.description.type, "Type Id:", self.obj.description.id
@@ -441,6 +173,108 @@ class InteractiveObjectMarker():#QWidget):
 
       self.server.applyChanges()
 
+  def showModelCb(self, feedback):
+    print 'Come and see the show'
+    handle = feedback.menu_entry_id
+    menu_handler = self.menu_handler
+    server = self.server
+
+    # note: 1 is the id of the root handel in the menu_handler
+    models = findParent(menu_handler, 1, handle)
+    geo_or_abs = findParent(menu_handler, 1, models)
+    rel_or_abs = findParent(menu_handler, 1, geo_or_abs)
+    show = findParent(menu_handler, 1, rel_or_abs)
+    inst_or_desc = findParent(menu_handler, 1, show)
+
+    if menu_handler.getTitle(rel_or_abs) == "Relative" and menu_handler.getTitle(geo_or_abs) == "Geometries":
+      model_visu = self.visu_config.relative.geometries
+      print 'choose rel geo'
+    elif menu_handler.getTitle(rel_or_abs) == "Relative" and menu_handler.getTitle(geo_or_abs) == "Abstractions":
+      model_visu = self.visu_config.relative.abstractions
+      print 'choose rel abs'
+    elif menu_handler.getTitle(rel_or_abs) == "Absolute" and menu_handler.getTitle(geo_or_abs) == "Geometries":
+      model_visu = self.visu_config.absolute.geometries
+      print 'choose abs geo'
+    elif menu_handler.getTitle(rel_or_abs) == "Absolute" and menu_handler.getTitle(geo_or_abs) == "Abstractions":
+      model_visu = self.visu_config.absolute.abstractions
+      print 'choose abs abs'
+    else:
+      print 'couldnt collect right model visu'
+      return
+
+    if menu_handler.getTitle(handle) in model_visu.keys():
+      if menu_handler.getCheckState( handle ) == MenuHandler.CHECKED:
+        menu_handler.setCheckState( handle, MenuHandler.UNCHECKED )
+        model_visu[menu_handler.getTitle(handle)].show_geo = False
+        model_visu[menu_handler.getTitle(handle)].show_text = False
+      else:
+        menu_handler.setCheckState( handle, MenuHandler.CHECKED )
+        model_visu[menu_handler.getTitle(handle)].show_geo = True
+        model_visu[menu_handler.getTitle(handle)].show_text = True
+
+    else:
+      rospy.logwarn('showGeometryModelCb: Unknown MenuEntry %s was called.' % menu_handler.getTitle(handle))
+
+    menu_handler.reApply( server )
+    updateVisuControl(self.marker.controls, self.obj, self.visu_config)
+    server.applyChanges()
+      
+  def showMetaCb(self, feedback):
+    print ' show and destroy '
+    handle = feedback.menu_entry_id
+    menu_handler = self.menu_handler
+    server = self.server
+
+    geo_or_abs = findParent(menu_handler, 1, handle)
+    rel_or_abs = findParent(menu_handler, 1, geo_or_abs)
+
+    print 'SEARCH FOR ROOT'
+    show = findParent(menu_handler, 1, rel_or_abs)
+    print 'show', menu_handler.getTitle(show)
+    over = findParent(menu_handler, 1, show)
+    print 'over', menu_handler.getTitle(over)
+    if menu_handler.getTitle(rel_or_abs) == "Relative" and menu_handler.getTitle(geo_or_abs) == "Geometries":
+      model_visu = self.visu_config.relative.geometries
+    elif menu_handler.getTitle(rel_or_abs) == "Relative" and menu_handler.getTitle(geo_or_abs) == "Abstractions":
+      model_visu = self.visu_config.relative.abstractions
+    elif menu_handler.getTitle(rel_or_abs) == "Absolute" and menu_handler.getTitle(geo_or_abs) == "Geometries":
+      model_visu = self.visu_config.absolute.geometries
+    elif menu_handler.getTitle(rel_or_abs) == "Absolute" and menu_handler.getTitle(geo_or_abs) == "Abstractions":
+      model_visu = self.visu_config.absolute.abstractions
+    else:
+      print 'couldnt collect right model visu'
+      return
+
+    if menu_handler.getTitle(handle) == "All":
+      for key in model_visu.keys():
+        model_visu[key].show_geo = True
+        model_visu[key].show_text = True
+        menu_handler.setCheckState( model_visu[key].handle, MenuHandler.CHECKED )
+    elif menu_handler.getTitle(handle) == "None":
+      for key in model_visu.keys():
+        model_visu[key].show_geo = False
+        model_visu[key].show_text = False
+        menu_handler.setCheckState( model_visu[key].handle, MenuHandler.UNCHECKED )
+    elif menu_handler.getTitle(handle) == "Inverted":
+      for key in model_visu.keys():
+        if menu_handler.getCheckState( model_visu[key].handle ) == MenuHandler.CHECKED:
+          model_visu[key].show_geo = False
+          model_visu[key].show_text = False
+          menu_handler.setCheckState( model_visu[key].handle, MenuHandler.UNCHECKED )
+        elif menu_handler.getCheckState( model_visu[key].handle ) == MenuHandler.UNCHECKED:
+          model_visu[key].show_geo = True
+          model_visu[key].show_text = True
+          menu_handler.setCheckState( model_visu[key].handle, MenuHandler.CHECKED )
+        else:
+          print 'no checkbox... shouldnt happen'
+    else:
+      rospy.logwarn('showGeometryModelCb: Unknown MenuEntry %s was called.' % menu_handler.getTitle(handle))
+
+    menu_handler.reApply( server )
+    updateVisuControl(self.marker.controls, self.obj, self.visu_config)
+    server.applyChanges()
+
+
   def showGeometryModelCb(self, feedback):
     handle = feedback.menu_entry_id
     menu_handler = self.menu_handler
@@ -448,9 +282,6 @@ class InteractiveObjectMarker():#QWidget):
 
     menu_handle = findParent(menu_handler, self.instance_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, handle)
-
-    #print 'MENU', menu_handler.getTitle(menu_handle)
-    #print 'model', menu_handler.getTitle(model_handle)
 
     if menu_handler.getTitle(model_handle) in self.model_visu.keys():
       state = menu_handler.getCheckState( model_handle )
@@ -477,7 +308,6 @@ class InteractiveObjectMarker():#QWidget):
         menu_handler.setCheckState( self.model_entry[key], MenuHandler.UNCHECKED )
 
     elif menu_handler.getTitle(handle) == "Inverted":
-
       for key in self.model_visu.keys():
         if menu_handler.getCheckState( self.model_entry[key] ) == MenuHandler.CHECKED:
           menu_handler.setCheckState( self.model_entry[key], MenuHandler.UNCHECKED )
@@ -504,31 +334,29 @@ class InteractiveObjectMarker():#QWidget):
     meta_handle = findParent(menu_handler, self.models_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, meta_handle)
     rospy.loginfo("Remove %s" % menu_handler.getTitle(model_handle))
-    if menu_handler.getTitle(model_handle) in self.model_visu.keys():
-      rospy.loginfo("Remove %s" % menu_handler.getTitle(model_handle))
-      state = menu_handler.getCheckState( model_handle )
-      call_remove_geometry_model(self.obj.description.id, menu_handler.getTitle(model_handle))
-    elif menu_handler.getTitle(handle) == "All":
-      rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
-      for key in self.model_visu.keys():
-        call_remove_geometry_model(self.obj.description.id, key)
-    elif menu_handler.getTitle(handle) == "Shown":
-      rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
-      for key in self.model_visu.keys():
-        if menu_handler.getCheckState( self.model_entry[key] ) == MenuHandler.CHECKED:
-          call_remove_geometry_model(self.obj.description.id, key)
-    elif menu_handler.getTitle(handle) == "Not Shown":
-      rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
-      for key in self.model_visu.keys():
-        if menu_handler.getCheckState( self.model_entry[key] ) == MenuHandler.UNCHECKED:
-          call_remove_geometry_model(self.obj.description.id, key)
+    if menu_handler.getTitle(model_handle) in self.visu_config.relative.geometries.keys():
+      res = call_remove_geometry_model(self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id)
+    #elif menu_handler.getTitle(handle) == "All":
+      #rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
+      #for key in self.model_visu.keys():
+        #res = call_remove_geometry_model(self.obj.description.id, key)
+    #elif menu_handler.getTitle(handle) == "Shown":
+      #rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
+      #for key in self.model_visu.keys():
+        #if menu_handler.getCheckState( self.model_entry[key] ) == MenuHandler.CHECKED:
+          #res = call_remove_geometry_model(self.obj.description.id, key)
+    #elif menu_handler.getTitle(handle) == "Not Shown":
+      #rospy.loginfo("Remove %s" % menu_handler.getTitle(handle))
+      #for key in self.model_visu.keys():
+        #if menu_handler.getCheckState( self.model_entry[key] ) == MenuHandler.UNCHECKED:
+          #res = call_remove_geometry_model(self.obj.description.id, key)
     else:
       rospy.logwarn('removeGeometryModelCb: Unknown MenuEntry %s was called.' % menu_handler.getTitle(handle))
 
     menu_handler.reApply( server )
-    updateVisuControl(self.marker.controls, self.obj, self.model_visu)
+    #updateVisuControl(self.marker.controls, self.obj, self.model_visu)
     server.applyChanges()
-    self.update()
+    call_refresh_objects(res.ids)
 
   def moveObjectInstanceCb(self, feedback):
     menu_handler = self.menu_handler
@@ -555,8 +383,8 @@ class InteractiveObjectMarker():#QWidget):
     widget = ChooseReferenceFrameWidget(self.obj.name)
     widget.exec_()
     name, keep_transform = widget.getChoice()
-    call_change_frame(self.obj.id, name , keep_transform)
-    self.update()
+    res = call_change_frame(self.obj.id, name , keep_transform)
+    call_refresh_objects(res.ids)
 
   def update(self):
     call_activate_objects([self.obj.id])
@@ -569,8 +397,8 @@ class InteractiveObjectMarker():#QWidget):
 
   def saveObjectInstanceCb(self, feedback):
     if self.current_pose != None:
-      call_update_transform(self.obj.id, self.current_pose)
-    self.update()
+      res = call_update_transform(self.obj.id, self.current_pose)
+    call_refresh_objects(res.ids)
 
   def resetObjectInstanceCb(self, feedback):
     handle = feedback.menu_entry_id
@@ -650,14 +478,14 @@ class InteractiveObjectMarker():#QWidget):
 
     deactivate_res = call_deactivate_objects(delete_res.ids)
 
-    for name in  deactivate_res.names:
-      self.server.erase(name)
+    for id in delete_res.ids:
+      self.server.erase( "object" + str(id) )
 
     self.server.applyChanges()
-    #self.update()
+
   def copyObjectInstanceCb(self, feedback):
     res = call_copy_object_instances([self.obj.id])
-    call_activate_objects(res.ids)
+    call_refresh_objects(res.ids)
     self.server.applyChanges()
 
   def renameObjectInstanceCb(self, feedback):
@@ -673,8 +501,8 @@ class InteractiveObjectMarker():#QWidget):
     widget = SetNameWidget()
     widget.show()
     app.exec_()
-    call_rename_object_description(self.obj.description.id, widget.getName())
-    self.update()
+    res = call_rename_object_description(self.obj.description.id, widget.getName())
+    call_refresh_objects( res.ids )
 
   def renameGeometryModelCb(self, feedback):
 
@@ -682,13 +510,14 @@ class InteractiveObjectMarker():#QWidget):
     menu_handler = self.menu_handler
     meta_handle = findParent(menu_handler, self.models_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, meta_handle)
+    model_id = self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id
 
     app = QApplication(sys.argv)
     widget = SetNameWidget()
     widget.show()
     app.exec_()
-    call_rename_geometry_model(model_id, widget.getName())
-    self.update()
+    res = call_rename_geometry_model( model_id, widget.getName() )
+    call_refresh_objects( res.ids )
 
   def resetGeometryModelCb(self, feedback):
     menu_handler = self.menu_handler
@@ -697,13 +526,13 @@ class InteractiveObjectMarker():#QWidget):
     reset_handle = findParent(menu_handler, self.models_menu_handle, handle)
     move_handle = findParent(menu_handler, self.models_menu_handle, reset_handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
-    model_id = self.model_visu[menu_handler.getTitle(model_handle)].id
-
+    model_id = self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id
+    print 'reset model:', model_id
     if menu_handler.getTitle(handle) == "Origin":
       rospy.loginfo("Reset %s" % menu_handler.getTitle(handle))
       pose = Pose()
       pose.orientation.w = 1.0
-      call_set_geometry_model_pose(model_id, pose)
+      res= call_set_geometry_model_pose(model_id, pose)
     elif menu_handler.getTitle(handle) == "Pose":
       rospy.loginfo("Reset %s" % menu_handler.getTitle(handle))
       app = QApplication(sys.argv)
@@ -720,21 +549,37 @@ class InteractiveObjectMarker():#QWidget):
       pose.orientation.y = tmp[1][1]
       pose.orientation.z = tmp[1][2]
       pose.orientation.z = tmp[1][3]
-      call_set_geometry_model_pose(model_id, pose)
-    self.update()
+      res = call_set_geometry_model_pose(model_id, pose)
+
+    elif menu_handler.getTitle(handle) == "Z-Align":
+      print 'get da bb'
+      bb_res = call_get_geometry_model_bb(model_id)
+      print 'da BB is', bb_res
+      pose = ROSPose()
+      pose.position.z = 0.0 - bb_res.min_z
+      res = call_update_geometry_model_pose(model_id, pose)
+
+    call_refresh_objects( res.ids )
+
 
   def rotateGeometryModelCb(self, feedback):
+  
     menu_handler = self.menu_handler
     degree_handle = handle = feedback.menu_entry_id
     axis_handle = findParent(menu_handler, self.models_menu_handle, degree_handle)
     rotate_handle = findParent(menu_handler, self.models_menu_handle, axis_handle)
     move_handle = findParent(menu_handler, self.models_menu_handle, rotate_handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
-    model_type = self.model_visu[menu_handler.getTitle(model_handle)].type
+    print 'rotate', menu_handler.getTitle(model_handle),' about ', menu_handler.getTitle(axis_handle), menu_handler.getTitle(degree_handle)
+   
     pose = getRotation( menu_handler.getTitle(axis_handle), menu_handler.getTitle(degree_handle))
-    call_update_geometry_model_pose(self.obj.description.id, model_type, pose)
-    self.update()
-
+    #call_update_geometry_model_pose(self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id, pose)
+    print 'in', pose
+    call_update_and_transform_geometry_model_pose(self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id, pose)
+    res = call_update_object_descriptions( [self.obj.description.id] )
+    call_refresh_objects( res.ids )
+    print 'DAT UPDATE IS OVER, VISU IS UP'
+    
   def moveLabelCb(self, feedback):
     server = self.server
     menu_handler = self.menu_handler
@@ -760,24 +605,24 @@ class InteractiveObjectMarker():#QWidget):
     handle = feedback.menu_entry_id
     move_handle = findParent(menu_handler, self.models_menu_handle, handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
-    model_id = self.model_visu[menu_handler.getTitle(model_handle)].id
-    model = self.model_visu[menu_handler.getTitle(model_handle)].model
+    model_id = self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id
 
     if not self.geometry_movement:
       self.geometry_movement_id = model_id
       self.geometry_movement = True
-      self.createGeometryMovement(model, self.model_visu)
+      model = self.getModelFromGeometrySet(self.obj.description.geometries, model_id)
+      self.createGeometryMovement(model, self.visu_config.relative.geometries)
 
     server.applyChanges()
 
   def saveGeometryModelCb(self, feedback):
     if self.geometry_movement:
-      call_set_geometry_model_pose(self.geometry_movement_id, self.geometry_movement_pose)
+      res = call_set_geometry_model_pose(self.geometry_movement_id, self.geometry_movement_pose)
       self.server.erase("GeometryMotion")
       self.geometry_movement = False
       self.geometry_movement_id = None
       self.server.applyChanges()
-      self.update()
+      call_refresh_objects( res.ids )
 
   def switchObjectDescriptionCb(self, feedback):
     app = QApplication(sys.argv)
@@ -806,8 +651,8 @@ class InteractiveObjectMarker():#QWidget):
     if menu_handler.getTitle(handle) == "Remove Corresponding Instances":
       delete_res = call_delete_object_descriptions([self.obj.description.id], False)
       deactivate_res = call_deactivate_objects(delete_res.ids)
-      for name in deactivate_res.names:
-        self.server.erase(name)
+      for id in delete_res.ids:
+        self.server.erase( "object" + str(id) )
       self.server.applyChanges()
       return
     elif menu_handler.getTitle(handle) == "Switch Instances To...":
@@ -817,14 +662,13 @@ class InteractiveObjectMarker():#QWidget):
       app.exec_()
       desc_name, desc_id = widget.getChoice()
       delete_res = call_delete_object_descriptions([self.obj.description.id], True, desc_id)
-      self.app.reactivate_objects()
     elif menu_handler.getTitle(handle) == "Strip Instances of Description":
       delete_res = call_delete_object_descriptions([self.obj.description.id], True)
     else:
       print 'fuck nothin happend'
       return
 
-    deactivate_res = call_activate_objects(delete_res.ids)
+    deactivate_res = call_refresh_objects(delete_res.ids)
     self.server.applyChanges()
     self.update()
 
@@ -854,7 +698,8 @@ class InteractiveObjectMarker():#QWidget):
 
         model.type = widget.getType()
         call_add_point_2d_model(self.obj.description.id, model)
-        self.update()
+        res = call_update_object_descriptions( [self.obj.description.id] )
+        call_refresh_objects( res.ids )
       except tf.Exception as e:
         print "some tf exception happened %s" % e
 
@@ -866,7 +711,6 @@ class InteractiveObjectMarker():#QWidget):
     if self.process_pose2d_:
       self.process_pose2d_ = False
       print 'processing 2d pose - IS NOT IMPLEMENTED YET'
-      print pose
 
   def polygon2dCb(self, feedback):
     print 'waiting for 2d polygon'
@@ -886,7 +730,8 @@ class InteractiveObjectMarker():#QWidget):
 
       model.type = widget.getType()
       call_add_polygon_2d_model(self.obj.description.id, model)
-      self.update()
+      res = call_update_object_descriptions( [self.obj.description.id] )
+      call_refresh_objects( res.ids )
 
   def point3dCb(self, feedback):
     print 'waiting for 3d point'
@@ -896,7 +741,6 @@ class InteractiveObjectMarker():#QWidget):
     if self.process_point3d_:
       self.process_point3d_ = False
       print 'processing 3d point'
-      print point
       try:
         self.tf_listener.waitForTransform(self.obj.name, point.header.frame_id, rospy.Time.now(), rospy.Duration(4.0))
         new_point = self.tf_listener.transformPoint(self.obj.name, point)
@@ -910,7 +754,8 @@ class InteractiveObjectMarker():#QWidget):
 
         model.type = widget.getType()
         call_add_point_3d_model(self.obj.description.id, model)
-        self.update()
+        res = call_update_object_descriptions( [self.obj.description.id] )
+        call_refresh_objects( res.ids )
       except tf.Exception as e:
         print "some tf exception happened %s" % e
 
@@ -935,7 +780,8 @@ class InteractiveObjectMarker():#QWidget):
 
         model.type = widget.getType()
         call_add_pose_3d_model(self.obj.description.id, model)
-        self.update()
+        res = call_update_object_descriptions( [self.obj.description.id] )
+        call_refresh_objects( res.ids )
       except tf.Exception as e:
         print "some tf exception happened %s" % e
 
@@ -947,8 +793,6 @@ class InteractiveObjectMarker():#QWidget):
     if self.process_polygon3d_:
       self.process_polygon3d_ = False
       print 'processing 3d point'
-      print polygon
-
       transformed_polygon = transformPolygonStamped(self.tf_listener, self.obj.name, polygon)
 
       model = Polygon2DModel()
@@ -962,11 +806,10 @@ class InteractiveObjectMarker():#QWidget):
       model.type = widget.getType()
 
       call_add_polygon_3d_model(self.obj.description.id, model)
-      self.update()
+      res = call_update_object_descriptions( [self.obj.description.id] )
+      call_refresh_objects( res.ids )
 
   def meshFileCb(self, feedback):
-    print 'waiting for mesh via file'
-
     app = QApplication(sys.argv)
     dlg=QFileDialog( )
     dlg.setWindowTitle( 'Select MeshFile' )
@@ -977,7 +820,6 @@ class InteractiveObjectMarker():#QWidget):
         mesh = importFromFileToMesh(dlg.selectedFiles()[0].encode('ascii','ignore'))
         model = TriangleMesh3DModel()
 
-        #app = QApplication(sys.argv)
         widget = SetGeometryModelTypeWidget()
         widget.show()
         app.exec_()
@@ -992,7 +834,8 @@ class InteractiveObjectMarker():#QWidget):
 
         model.geometry = mesh
         call_add_triangle_mesh_3d_model(self.obj.description.id, model)
-        self.update()
+        res = call_update_object_descriptions( [self.obj.description.id] )
+        call_refresh_objects( res.ids )
 
   def meshToolCb(self, feedback):
     print 'waiting for mesh via tool'
@@ -1001,27 +844,29 @@ class InteractiveObjectMarker():#QWidget):
     print 'waiting for polymesh'
 
   def colorCb(self, feedback):
+  
+    
     if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
-      if feedback.model_type in self.model_visu.keys():
-        self.model_visu[feedback.model_type].show_geo = feedback.show_geo
-        self.model_visu[feedback.model_type].geo_color = feedback.geo_color
-        self.model_visu[feedback.model_type].geo_scale = feedback.geo_scale
-        self.model_visu[feedback.model_type].show_text = feedback.geo_color
-        self.model_visu[feedback.model_type].text_color = feedback.text_color
-        self.model_visu[feedback.model_type].text_scale = feedback.text_scale
-        self.model_visu[feedback.model_type].text_offset = feedback.text_offset
-        updateVisuControl(self.marker.controls, self.obj, self.model_visu)
+      print 'label command incoming'
+      print feedback.model_type, self.visu_config.relative.geometries.keys()
+      
+      if feedback.model_type in self.visu_config.relative.geometries.keys():
+        self.visu_config.relative.geometries[feedback.model_type].show_geo = feedback.show_geo
+        self.visu_config.relative.geometries[feedback.model_type].geo_color = feedback.geo_color
+        self.visu_config.relative.geometries[feedback.model_type].geo_scale = feedback.geo_scale
+        self.visu_config.relative.geometries[feedback.model_type].show_text = feedback.geo_color
+        self.visu_config.relative.geometries[feedback.model_type].text_color = feedback.text_color
+        self.visu_config.relative.geometries[feedback.model_type].text_scale = feedback.text_scale
+        self.visu_config.relative.geometries[feedback.model_type].text_offset = feedback.text_offset
+        updateVisuControl(self.marker.controls, self.obj, self.visu_config)
         self.server.applyChanges()
-    #self.update()
+      self.update()
 
   def labelCb(self, feedback):
-
-    #print 'label it'
-
+    
     if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
 
       if feedback.set_pose:
-        #print 'sette dat pose'
         self.label_pose.pose = feedback.label_pose
         updateMenuControl(self.marker.controls, self.label_pose, self.label)
 
@@ -1033,7 +878,6 @@ class InteractiveObjectMarker():#QWidget):
           self.label = self.obj.alias
           updateMenuControl(self.marker.controls, self.label_pose, self.label)
         else:
-          #print "labeled object by type, there's no alias"
           self.label = self.obj.description.type
           updateMenuControl(self.marker.controls, self.label_pose, self.label)
       elif feedback.label_type == "Name":
@@ -1075,19 +919,65 @@ class InteractiveObjectMarker():#QWidget):
   def initInstanceMenu(self):
     self.instance_menu_handle = self.menu_handler.insert("Instance")
 
-    save = self.menu_handler.insert("Save Changes", parent = self.instance_menu_handle, callback = self.saveObjectInstanceCb)
-    self.menu_handler.setVisible(save, True)
+    show = self.menu_handler.insert("Show", parent = self.instance_menu_handle)
+
+    show_relative = self.menu_handler.insert("Relative", parent = show)
+    show_relative_geos = self.menu_handler.insert("Geometries", parent = show_relative)
+    models_menu_handle = self.menu_handler.insert("Models", parent = show_relative_geos)
+    for key in self.visu_config.relative.geometries.keys():
+      handle = self.menu_handler.insert(key, parent = models_menu_handle, callback = self.showModelCb)
+      self.visu_config.relative.geometries[key].handle = handle
+      if self.visu_config.relative.geometries[key].show_geo or self.visu_config.relative.geometries[key].show_text:
+        self.menu_handler.setCheckState(handle, MenuHandler.CHECKED)
+      else:
+        self.menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
+    self.menu_handler.insert("All", parent = show_relative_geos, callback = self. showMetaCb)
+    self.menu_handler.insert("None", parent = show_relative_geos, callback = self.showMetaCb)
+    self.menu_handler.insert("Inverted", parent = show_relative_geos, callback = self.showMetaCb)
+    show_relative_abs = self.menu_handler.insert("Abstractions", parent = show_relative)
+    models_menu_handle = self.menu_handler.insert("Models", parent = show_relative_abs)
+    for key in self.visu_config.relative.abstractions.keys():
+      handle = self.menu_handler.insert(key, parent = models_menu_handle, callback = self.showModelCb)
+      self.visu_config.relative.abstractions[key].handle = handle
+      if self.visu_config.relative.abstractions[key].show_geo or self.visu_config.relative.abstractions[key].show_text:
+        self.menu_handler.setCheckState(handle, MenuHandler.CHECKED)
+      else:
+        self.menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
+    self.menu_handler.insert("All", parent = show_relative_abs, callback = self.showMetaCb)
+    self.menu_handler.insert("None", parent = show_relative_abs, callback = self.showMetaCb)
+    self.menu_handler.insert("Inverted", parent = show_relative_abs, callback = self.showMetaCb)
+
+    show_absolute = self.menu_handler.insert("Absolute", parent = show)
+    show_absolute_geos = self.menu_handler.insert("Geometries", parent = show_absolute)
+    models_menu_handle = self.menu_handler.insert("Models", parent = show_absolute_geos)
+    for key in self.visu_config.absolute.geometries.keys():
+      handle = self.menu_handler.insert(key, parent = models_menu_handle, callback = self.showModelCb)
+      self.visu_config.absolute.geometries[key].handle = handle
+      if self.visu_config.absolute.geometries[key].show_geo or self.visu_config.absolute.geometries[key].show_text:
+        self.menu_handler.setCheckState(handle, MenuHandler.CHECKED)
+      else:
+        self.menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
+    self.menu_handler.insert("All", parent = show_absolute_geos, callback = self.showMetaCb)
+    self.menu_handler.insert("None", parent = show_absolute_geos, callback = self.showMetaCb)
+    self.menu_handler.insert("Inverted", parent = show_absolute_geos, callback = self.showMetaCb)
+    show_absolute_abs = self.menu_handler.insert("Abstractions", parent = show_absolute)
+    models_menu_handle = self.menu_handler.insert("Models", parent = show_absolute_abs)
+    for key in self.visu_config.absolute.abstractions.keys():
+      handle = self.menu_handler.insert(key, parent = models_menu_handle, callback = self.showModelCb)
+      self.visu_config.absolute.abstractions[key].handle = handle
+      if self.visu_config.absolute.abstractions[key].show_geo or self.visu_config.absolute.abstractions[key].show_text:
+        self.menu_handler.setCheckState(handle, MenuHandler.CHECKED)
+      else:
+        self.menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
+    self.menu_handler.insert("All", parent = show_absolute_abs, callback = self.showMetaCb)
+    self.menu_handler.insert("None", parent = show_absolute_abs, callback = self.showMetaCb)
+    self.menu_handler.insert("Inverted", parent = show_absolute_abs, callback = self.showMetaCb)
 
     move = self.menu_handler.insert("Move", parent = self.instance_menu_handle)
     move_6d = self.menu_handler.insert("6D", parent = move, callback = self.moveObjectInstanceCb)
     self.menu_handler.setCheckState(move_6d, MenuHandler.UNCHECKED)
     move_3d = self.menu_handler.insert("3D", parent = move, callback = self.moveObjectInstanceCb)
     self.menu_handler.setCheckState(move_3d, MenuHandler.UNCHECKED)
-
-    show = self.menu_handler.insert("Show", parent = self.instance_menu_handle)
-    self.menu_handler.insert("All", parent = show, callback = self.showGeometryModelCb)
-    self.menu_handler.insert("None", parent = show, callback = self.showGeometryModelCb)
-    self.menu_handler.insert("Inverted", parent = show, callback = self.showGeometryModelCb)
 
     rotate = self.menu_handler.insert("Rotate...", parent = move)
     roll = self.menu_handler.insert("Roll", parent = rotate)
@@ -1107,6 +997,9 @@ class InteractiveObjectMarker():#QWidget):
     self.menu_handler.insert("Pose", parent = reset, callback = self.resetObjectInstanceCb)
     self.menu_handler.insert("Instance", parent = reset, callback = self.resetObjectInstanceCb)
     self.menu_handler.insert("Change Reference Frame", parent = move, callback = self.frameCb)
+
+    save = self.menu_handler.insert("Save Changes", parent = self.instance_menu_handle, callback = self.saveObjectInstanceCb)
+    self.menu_handler.setVisible(save, True)
 
     meta = self.menu_handler.insert("Meta", parent = self.instance_menu_handle)
     self.menu_handler.insert("Info", parent = meta, callback = self.infoInstanceCb)
@@ -1130,10 +1023,15 @@ class InteractiveObjectMarker():#QWidget):
     save = self.menu_handler.insert("Save Changes", parent = self.description_menu_handle, callback = self.saveObjectDescriptionCb)
     self.menu_handler.setVisible(save, False)
 
-    show = self.menu_handler.insert("Show", parent = self.description_menu_handle)
-    self.menu_handler.insert("All", parent = show, callback = self.showGeometryModelCb)
-    self.menu_handler.insert("None", parent = show, callback = self.showGeometryModelCb)
-    self.menu_handler.insert("Inverted", parent = show, callback = self.showGeometryModelCb)
+    #show = self.menu_handler.insert("Show", parent = self.description_menu_handle)
+    #self.menu_handler.insert("All", parent = show, callback = self.showModelCb)
+    #self.menu_handler.insert("None", parent = show, callback = self.showModelCb)
+    #self.menu_handler.insert("Inverted", parent = show, callback = self.showModelCb)
+
+    #remove = self.menu_handler.insert("Remove", parent = self.description_menu_handle)
+    #self.menu_handler.insert("All", parent = remove, callback = self.removeGeometryModelCb)
+    #self.menu_handler.insert("Shown", parent = remove, callback = self.removeGeometryModelCb)
+    #self.menu_handler.insert("Not Shown", parent = remove, callback = self.removeGeometryModelCb)
 
     add = self.menu_handler.insert("Add", parent = self.description_menu_handle)
     self.menu_handler.insert("2D Point", parent = add, callback = self.point2dCb)
@@ -1145,25 +1043,12 @@ class InteractiveObjectMarker():#QWidget):
     self.menu_handler.insert("3D Triangle Mesh", parent = add, callback = self.meshFileCb)
     self.menu_handler.insert("3D Polygon Mesh", parent = add, callback = self.polymeshCb)
 
-    remove = self.menu_handler.insert("Remove", parent = self.description_menu_handle)
-    self.menu_handler.insert("All", parent = remove, callback = self.removeGeometryModelCb)
-    self.menu_handler.insert("Shown", parent = remove, callback = self.removeGeometryModelCb)
-    self.menu_handler.insert("Not Shown", parent = remove, callback = self.removeGeometryModelCb)
-
     self.models_menu_handle = self.menu_handler.insert("Models", parent = self.description_menu_handle)
 
-    for key in self.model_visu:
-      self.model_entry[key] = self.menu_handler.insert(key, parent = self.models_menu_handle)
+    for key in self.visu_config.relative.geometries:
+      model_menu = self.menu_handler.insert(key, parent = self.models_menu_handle)
 
-      if self.model_visu[key].show_geo or self.model_visu[key].show_text:
-        state = MenuHandler.CHECKED
-      else:
-        state = MenuHandler.UNCHECKED
-
-      self.menu_handler.setCheckState(self.model_entry[key], state)
-      self.menu_handler.insert("Show", parent = self.model_entry[key], callback = self.showGeometryModelCb)
-
-      move = self.menu_handler.insert("Move", parent = self.model_entry[key])
+      move = self.menu_handler.insert("Move", parent = model_menu)
       self.menu_handler.insert("Freely", parent = move, callback = self.moveGeometryModelCb )
 
       rotate = self.menu_handler.insert("Rotate...", parent = move)
@@ -1182,8 +1067,10 @@ class InteractiveObjectMarker():#QWidget):
       reset = self.menu_handler.insert("Reset To...", parent = move)
       self.menu_handler.insert("Origin", parent = reset, callback = self.resetGeometryModelCb)
       self.menu_handler.insert("Pose", parent = reset, callback = self.resetGeometryModelCb)
+      self.menu_handler.insert("Z-Align", parent = reset, callback = self.resetGeometryModelCb)
+      
 
-      meta = self.menu_handler.insert("Meta", parent = self.model_entry[key])
+      meta = self.menu_handler.insert("Meta", parent = model_menu)
       self.menu_handler.insert("Rename", parent = meta, callback = self.renameGeometryModelCb)
       self.menu_handler.insert("Remove", parent = meta, callback = self.removeGeometryModelCb)
 
@@ -1202,18 +1089,53 @@ class InteractiveObjectMarker():#QWidget):
     self.marker.scale = 1.0
     self.marker.description = "This is the interactive marker for object: " + self.obj.name
 
-    self.label = self.obj.description.type
+    if self.obj.description.type:
+      self.label = self.obj.description.type + str(self.obj.id)
+    else:
+      self.label = "Unknown"
     self.label_pose = ROSPoseStamped()
     self.label_pose.header.frame_id = self.obj.name
     self.label_pose.pose.position.z += 1.0
 
     createMenuControl(self.marker.controls, self.label_pose, self.label)
-    createVisuControl(self.marker.controls, self.obj, self.model_visu)
-    createVisuControl(self.marker.controls, self.obj, self.absolute_visu, True)
+    createVisuControl(self.marker.controls, self.obj, self.visu_config)
 
     self.server.insert(self.marker, self.processFeedback)
     self.menu_handler.apply( self.server, self.marker.name )
     self.server.applyChanges()
+
+  def getModelFromGeometrySet(self, geo_set, model_id):
+    for model in geo_set.point2d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.pose2d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.polygon2d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.point3d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.pose3d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.polygon3d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.trianglemesh3d_models:
+      if model_id == model.id:
+        return model
+
+    for model in geo_set.polygonmesh3d_models:
+      if model_id == model.id:
+        return model
 
   def createGeometryMovement(self, model, model_visu):
     self.geometry_movement_marker = InteractiveMarker()
