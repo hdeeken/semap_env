@@ -249,31 +249,25 @@ def defaultRelativeAbstractionVisu(geo_set):
       visu.geo_color = [0.75, 0.75, 0.75, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
       visu.show_text = False
-    if model.type == "FrontExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 0.0, 0.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-    if model.type == "BackExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 1.0, 0.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-    if model.type == "LeftExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 1.0, 0.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-    if model.type == "RightExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 1.0, 1.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-    if model.type == "TopExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 0.0, 1.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-    if model.type == "BottomExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 0.0, 1.0, 1.0]
-      visu.geo_scale = [0.04, 0.04, 0.04]
-      
+
+    if "Extrusion" in model.type:
+      visu.geo_color = [0.5, 0.5, 0.5, 1.0]
+      visu.geo_scale = [0.05, 0.05, 0.05]
+      visu.show_geo = False
+      visu.show_text = False
+      if "Front" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [  0.5, 0.0, 0.0, 0.0])]
+      elif "Back" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ -0.5, 0.0, 0.0, 0.0])]
+      if "Left" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
+      elif "Right" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, -0.5, 0.0, 0.0])]
+      if "Top" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
+      elif "Bot" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, -0.5, 0.0])]
+
     model_dict[visu.type] = visu
 
   return model_dict
@@ -375,30 +369,24 @@ def defaultAbsoluteAbstractionVisu(geo_set):
       visu.geo_color = [0.75, 0.75, 0.75, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
       visu.show_text = False
-    if model.type == "FrontExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 0.0, 0.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
-    if model.type == "BackExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 1.0, 0.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
-    if model.type == "LeftExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 1.0, 0.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
-    if model.type == "RightExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 1.0, 1.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
-    if model.type == "TopExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [1.0, 0.0, 1.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
-    if model.type == "BottomExtrusion":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 0.0, 1.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
+    if "Extrusion" in model.type:
+      visu.geo_color = [0.5, 0.5, 0.5, 1.0]
+      visu.geo_scale = [0.05, 0.05, 0.05]
+      visu.show_geo = False
+      visu.show_text = False
+      if "Front" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [  0.5, 0.0, 0.0, 0.0])]
+      elif "Back" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ -0.5, 0.0, 0.0, 0.0])]
+      if "Left" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
+      elif "Right" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, -0.5, 0.0, 0.0])]
+      if "Top" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
+      elif "Bot" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, -0.5, 0.0])]
+
     model_dict[visu.type] = visu
 
   return model_dict
