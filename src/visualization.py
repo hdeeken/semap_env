@@ -93,7 +93,7 @@ def defaultRelativeDescriptionVisu(geo_set):
 
   for model in geo_set.trianglemesh3d_models:
     visu = visuTriangleMesh3DModel(model)
-    visu.show_geo = False
+    visu.show_geo = True
     model_dict[visu.type] = visu
 
   for model in geo_set.polygonmesh3d_models:
