@@ -233,7 +233,7 @@ def defaultRelativeAbstractionVisu(geo_set):
       visu.geo_color = [0.0, 0.75, 0.0, 1.0]
       visu.geo_scale = [0.005, 0.005, 0.005]
     if model.type == "BoundingBox":
-      visu.show_geo = False
+      visu.show_geo = True
       visu.geo_color = [0.0, 0.0, 0.75, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
     if model.type == "BoundingHull":
