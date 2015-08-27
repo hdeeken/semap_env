@@ -10,4 +10,4 @@ srv_gen/
 *.pyc
 *~
 *.swp
-src/spatial_environment/srv/
+src/semap_env/srv/
