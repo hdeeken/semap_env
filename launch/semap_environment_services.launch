@@ -6,7 +6,7 @@
   <arg name="host" default="localhost"/>
   <arg name="database" default="semap_devel"/>
 
-  <node name="spatial_environment_services" pkg="spatial_environment" type="services.py" output="screen">
+  <node name="semap_environment_services" pkg="semap_env" type="services.py" output="screen">
     <param name="user" value="$(arg user)"/>
     <param name="password" value="$(arg password)"/>
     <param name="host" value="$(arg host)"/>

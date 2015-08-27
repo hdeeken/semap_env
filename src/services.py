@@ -2,7 +2,7 @@
 
 import sys
 import rospy
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 
 import tf
 from tf.broadcaster import TransformBroadcaster
@@ -14,7 +14,7 @@ from db_model import *
 from db_environment import db, initializeConnection
 from interactive_object_marker import *
 from ghost_object_marker import *
-from spatial_environment.srv import *
+from semap_env.srv import *
 from spatial_db_ros.instance_srv_calls import *
 from spatial_db_ros.description_srv_calls import *
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
@@ -35,7 +35,7 @@ class EnvironmentObject:
     self.marker = marker
     self.status = status
 
-class SpatialEnvironmentServices():
+class SEMAPEnvironmentServices():
 
   server = None
   objects = {}
@@ -52,7 +52,7 @@ class SpatialEnvironmentServices():
     self.tf_listener = TransformListener()
 
   def setup_node(self):
-      rospy.init_node('spatial_environment_services')
+      rospy.init_node('semap_environment_services')
       rospy.loginfo( "SEMAP Environment Services are initializing...\n" )
       
       rospy.Timer(rospy.Duration(0.02), self.publishTF)
@@ -332,5 +332,5 @@ class SpatialEnvironmentServices():
         print 'POSE  :', active.object.pose
 
 if __name__ == "__main__":
-    services = SpatialEnvironmentServices()
+    services = SEMAPEnvironmentServices()
     services.spin()

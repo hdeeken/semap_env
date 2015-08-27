@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy, tf
-import roslib; roslib.load_manifest("spatial_environment")
+import roslib; roslib.load_manifest("semap_env")
 
 from visualization_msgs.msg import *
 from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped, Polygon

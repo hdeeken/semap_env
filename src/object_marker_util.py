@@ -2,7 +2,7 @@
 
 import copy
 import rospy
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 
 from shape_msgs.msg import Mesh as ROSMesh
 from shape_msgs.msg import MeshTriangle as ROSMeshTriangle

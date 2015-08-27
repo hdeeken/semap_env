@@ -13,7 +13,7 @@
     <arg name="database" value="$(arg database)"/>
   </include>
 
-  <include file="$(find spatial_environment)/launch/spatial_environment_services.launch">
+  <include file="$(find semap_env)/launch/semap_environment_services.launch">
     <arg name="user" value="$(arg user)"/>
     <arg name="password" value="$(arg password)"/>
     <arg name="host" value="$(arg host)"/>

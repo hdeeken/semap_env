@@ -2,7 +2,7 @@
 
 import copy
 import rospy
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 
 from geometry_msgs.msg import Point as ROSPoint
 from geometry_msgs.msg import Point32 as ROSPoint32

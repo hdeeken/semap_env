@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 '''
-SpatialEnvironment Service Calls
+SEMAP Environment Service Calls
 '''
 
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 import rospy
 
-from spatial_environment.srv import *
+from semap_env.srv import *
 
 def call_refresh_objects(ids):
   try:

@@ -3,7 +3,7 @@
 import sys
 import rviz
 import rospy
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *

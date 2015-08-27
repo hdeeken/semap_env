@@ -1,13 +1,11 @@
 <package>
-  <description brief="spatial_environment">
-
-     spatial_environment
-
+  <description brief="semap_env">
+  Nodes, Services and RViz Tools to create and maintain an environment with the SEMAP database.
   </description>
   <author>hdeeken</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/spatial_environment</url>
+  <url>http://ros.org/wiki/semap_env</url>
   <depend package="rospy"/>
   <depend package="interactive_markers"/>
 

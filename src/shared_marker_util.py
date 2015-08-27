@@ -6,7 +6,7 @@ from random import random
 from math import sin, radians
 from pyassimp import pyassimp
 
-import roslib; roslib.load_manifest("spatial_environment")
+import roslib; roslib.load_manifest("semap_env")
 import rospy, tf
 
 from tf.broadcaster import TransformBroadcaster
@@ -25,7 +25,7 @@ from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
 from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from interactive_object_marker_widgets import *
 from assimp_postgis_importer import importFromFileToMesh
-from spatial_environment.service_calls import *
+from semap_env.service_calls import *
 from object_description_marker import *
 from visualization import *
 

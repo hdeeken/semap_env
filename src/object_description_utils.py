@@ -5,7 +5,7 @@ Object Description Utils
 '''
 
 from numpy import radians
-import roslib; roslib.load_manifest('spatial_environment')
+import roslib; roslib.load_manifest("semap_env")
 
 from tf.transformations import quaternion_matrix, random_quaternion, quaternion_from_matrix, euler_from_matrix, euler_matrix
 from assimp_postgis_importer import importFromFileToMesh
