@@ -6,7 +6,7 @@
   <arg name="host" default="localhost"/>
   <arg name="database" default="semap_devel2"/>
 
-  <include file="$(find spatial_db_ros)/launch/spatial_db_services.launch">
+  <include file="$(find semap_ros)/launch/semap_database_services.launch">
     <arg name="user" value="$(arg user)"/>
     <arg name="password" value="$(arg password)"/>
     <arg name="host" value="$(arg host)"/>

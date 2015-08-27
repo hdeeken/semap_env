@@ -15,8 +15,8 @@ from db_environment import db, initializeConnection
 from interactive_object_marker import *
 from ghost_object_marker import *
 from semap_env.srv import *
-from spatial_db_ros.instance_srv_calls import *
-from spatial_db_ros.description_srv_calls import *
+from semap_ros.instance_srv_calls import *
+from semap_ros.description_srv_calls import *
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
 from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from spatial_db_msgs.msg import GeometryCollection

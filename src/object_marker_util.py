@@ -19,7 +19,7 @@ from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
 from spatial_db_msgs.msg import ObjectInstanceOverview as ROSObjectInstanceOverview
 from visualization_msgs.msg import Marker, MarkerArray
 
-from spatial_db_ros.srv import *
+from semap_ros.srv import *
 from tf.transformations import quaternion_matrix, random_quaternion, quaternion_from_matrix, euler_from_matrix, euler_matrix, quaternion_from_euler
 
 ###

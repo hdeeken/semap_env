@@ -5,8 +5,8 @@ import roslib; roslib.load_manifest("semap_env")
 
 from visualization_msgs.msg import *
 from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped, Polygon
-from spatial_db_ros.srv import *
-from spatial_db_ros.service_calls import *
+from semap_ros.srv import *
+from semap_ros.service_calls import *
 from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
 from spatial_db_msgs.msg import ColorCommand
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription

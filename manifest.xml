@@ -8,8 +8,7 @@
   <url>http://ros.org/wiki/semap_env</url>
   <depend package="rospy"/>
   <depend package="interactive_markers"/>
-
-  <depend package="spatial_db_ros"/>
+  <depend package="semap_ros"/>
 
 </package>
 

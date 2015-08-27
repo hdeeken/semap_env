@@ -7,10 +7,10 @@ import roslib; roslib.load_manifest("semap_env")
 
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
-from spatial_db_ros.srv import *
-from spatial_db_ros.service_calls import *
-from spatial_db_ros.instance_srv_calls import *
-from spatial_db_ros.description_srv_calls import *
+from semap_ros.srv import *
+from semap_ros.service_calls import *
+from semap_ros.instance_srv_calls import *
+from semap_ros.description_srv_calls import *
 
 class ChooseObjectInstanceWidget(QWidget):
   name_ = None

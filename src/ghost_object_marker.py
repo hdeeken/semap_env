@@ -17,10 +17,10 @@ from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
 from std_msgs.msg import String
-from spatial_db_ros.srv import *
-from spatial_db_ros.service_calls import *
-from spatial_db_ros.instance_srv_calls import *
-from spatial_db_ros.description_srv_calls import *
+from semap_ros.srv import *
+from semap_ros.service_calls import *
+from semap_ros.instance_srv_calls import *
+from semap_ros.description_srv_calls import *
 from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel, GeometryModelSet
 from spatial_db_msgs.msg import ColorCommand, LabelCommand
 from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription

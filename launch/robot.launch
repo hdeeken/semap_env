@@ -8,6 +8,6 @@
   <include file="$(find occupancy_grid_extractor)/launch/occupancy_grid_extractor.launch"/>
 
   <node pkg="tf" type="static_transform_publisher" name="robot_map_tf" args="0 0 0 0 0 0 /world /map 100"/>
-  <node pkg="rviz_spatial_db_plugin" type="polygon_client" name="polygon_client"/> 
+  <node pkg="rviz_semap_plugin" type="polygon_client" name="polygon_client"/> 
 
 </launch>
