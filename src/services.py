@@ -17,9 +17,9 @@ from ghost_object_marker import *
 from semap_env.srv import *
 from semap_ros.instance_srv_calls import *
 from semap_ros.description_srv_calls import *
-from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
-from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
-from spatial_db_msgs.msg import GeometryCollection
+from semap_msgs.msg import ObjectDescription as ROSObjectDescription
+from semap_msgs.msg import ObjectInstance as ROSObjectInstance
+from semap_msgs.msg import GeometryCollection
 
 class EnvironmentObject:
   id = None

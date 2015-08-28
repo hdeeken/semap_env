@@ -12,11 +12,11 @@ from geometry_msgs.msg import Pose2D as ROSPose2D
 from geometry_msgs.msg import Pose as ROSPose
 from geometry_msgs.msg import PoseStamped as ROSPoseStamped
 from geometry_msgs.msg import Polygon as ROSPolygon
-from spatial_db_msgs.msg import PolygonMesh as ROSPolygonMesh
-from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
-from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
-from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
-from spatial_db_msgs.msg import ObjectInstanceOverview as ROSObjectInstanceOverview
+from semap_msgs.msg import PolygonMesh as ROSPolygonMesh
+from semap_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
+from semap_msgs.msg import ObjectDescription as ROSObjectDescription
+from semap_msgs.msg import ObjectInstance as ROSObjectInstance
+from semap_msgs.msg import ObjectInstanceOverview as ROSObjectInstanceOverview
 from visualization_msgs.msg import Marker, MarkerArray
 
 from semap_ros.srv import *

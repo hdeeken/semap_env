@@ -19,10 +19,10 @@ from geometry_msgs.msg import Pose, PoseStamped, PointStamped, PolygonStamped
 from std_msgs.msg import String
 from semap_ros.srv import *
 from semap_ros.service_calls import *
-from spatial_db_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
-from spatial_db_msgs.msg import ColorCommand, LabelCommand
-from spatial_db_msgs.msg import ObjectDescription as ROSObjectDescription
-from spatial_db_msgs.msg import ObjectInstance as ROSObjectInstance
+from semap_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
+from semap_msgs.msg import ColorCommand, LabelCommand
+from semap_msgs.msg import ObjectDescription as ROSObjectDescription
+from semap_msgs.msg import ObjectInstance as ROSObjectInstance
 from interactive_object_marker_widgets import *
 from assimp_postgis_importer import importFromFileToMesh
 from semap_env.service_calls import *
