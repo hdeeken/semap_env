@@ -291,7 +291,8 @@ class GhostObjectMarker():
     self.label_pose = ROSPoseStamped()
     self.label_pose.header.frame_id = "world"
     self.label_pose = self.obj.pose
-    self.label_pose.pose.position.z += 1.0
+    self.label_pose.pose.position.y += 0.0
+    self.label_pose.pose.position.z += 0.5
 
     createMenuControl(self.marker.controls, self.label_pose, self.label)
     updateGhostVisu(self.marker.controls, self.obj, self.visu_config)

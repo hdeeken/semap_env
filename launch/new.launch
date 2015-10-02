@@ -4,7 +4,7 @@
   <arg name="user" default="hdeeken"/>
   <arg name="password" default="mYdB"/>
   <arg name="host" default="localhost"/>
-  <arg name="database" default="semap_devel2"/>
+  <arg name="database" default="semap_devel3"/>
 
   <include file="$(find semap_ros)/launch/semap_database_services.launch">
     <arg name="user" value="$(arg user)"/>
@@ -20,6 +20,6 @@
     <arg name="database" value="$(arg database)"/>
   </include>
 
-  <node pkg="rviz_semap_plugin" type="polygon_client" name="polygon_client"/>
+  <node pkg="rviz_semap_plugin" type="polygon_client" name="polygon_client"/> 
 
 </launch>

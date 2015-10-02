@@ -218,7 +218,7 @@ class InteractiveObjectMarker():
     menu_handler.reApply( server )
     updateVisuControl(self.marker.controls, self.obj, self.visu_config)
     server.applyChanges()
-      
+
   def showMetaCb(self, feedback):
     print ' show and destroy '
     handle = feedback.menu_entry_id
@@ -485,7 +485,7 @@ class InteractiveObjectMarker():
 
   def copyObjectInstanceCb(self, feedback):
     res = call_copy_object_instances([self.obj.id])
-    call_refresh_objects(res.ids)
+    call_activate_objects(res.ids)
     self.server.applyChanges()
 
   def renameObjectInstanceCb(self, feedback):
@@ -552,18 +552,42 @@ class InteractiveObjectMarker():
       res = call_set_geometry_model_pose(model_id, pose)
 
     elif menu_handler.getTitle(handle) == "Z-Align":
-      print 'get da bb'
       bb_res = call_get_geometry_model_bb(model_id)
-      print 'da BB is', bb_res
       pose = ROSPose()
       pose.position.z = 0.0 - bb_res.min_z
       res = call_update_geometry_model_pose(model_id, pose)
+
+    elif menu_handler.getTitle(handle) == "MakeRelative2D":
+      bb_res = call_get_geometry_model_bb(model_id)
+      pose = ROSPose()
+      pose.position.x = - bb_res.max_x  + ( bb_res.max_x - bb_res.min_x ) / 2
+      pose.position.y = - bb_res.max_y  + ( bb_res.max_y - bb_res.min_y ) / 2
+      res = call_update_and_transform_geometry_model_pose(model_id, pose)
+      for i in res.ids:
+        pose.position.x *= -1
+        pose.position.y *= -1
+        call_update_transform(i, pose)
+
+    elif menu_handler.getTitle(handle) == "MakeRelative3D":
+      bb_res = call_get_geometry_model_bb(model_id)
+      pose = ROSPose()
+      pose.position.x =  - bb_res.max_x  + ( bb_res.max_x - bb_res.min_x ) / 2
+      pose.position.y =  - bb_res.max_y  + ( bb_res.max_y - bb_res.min_y ) / 2
+      pose.position.z =  0.0  -  bb_res.min_z
+
+      res = call_update_and_transform_geometry_model_pose(model_id, pose)
+      for i in res.ids:
+        pose.position.x *= -1
+        pose.position.y *= -1
+        pose.position.z *= -1
+        call_update_transform(i, pose)
+      print 'ow move', res.ids
 
     call_refresh_objects( res.ids )
 
 
   def rotateGeometryModelCb(self, feedback):
-  
+
     menu_handler = self.menu_handler
     degree_handle = handle = feedback.menu_entry_id
     axis_handle = findParent(menu_handler, self.models_menu_handle, degree_handle)
@@ -571,7 +595,7 @@ class InteractiveObjectMarker():
     move_handle = findParent(menu_handler, self.models_menu_handle, rotate_handle)
     model_handle = findParent(menu_handler, self.models_menu_handle, move_handle)
     print 'rotate', menu_handler.getTitle(model_handle),' about ', menu_handler.getTitle(axis_handle), menu_handler.getTitle(degree_handle)
-   
+
     pose = getRotation( menu_handler.getTitle(axis_handle), menu_handler.getTitle(degree_handle))
     #call_update_geometry_model_pose(self.visu_config.relative.geometries[menu_handler.getTitle(model_handle)].id, pose)
     print 'in', pose
@@ -579,7 +603,7 @@ class InteractiveObjectMarker():
     res = call_update_object_descriptions( [self.obj.description.id] )
     call_refresh_objects( res.ids )
     print 'DAT UPDATE IS OVER, VISU IS UP'
-    
+
   def moveLabelCb(self, feedback):
     server = self.server
     menu_handler = self.menu_handler
@@ -617,7 +641,8 @@ class InteractiveObjectMarker():
 
   def saveGeometryModelCb(self, feedback):
     if self.geometry_movement:
-      res = call_set_geometry_model_pose(self.geometry_movement_id, self.geometry_movement_pose)
+
+      res = call_update_and_transform_geometry_model_pose(self.geometry_movement_id, self.geometry_movement_pose)
       self.server.erase("GeometryMotion")
       self.geometry_movement = False
       self.geometry_movement_id = None
@@ -844,12 +869,11 @@ class InteractiveObjectMarker():
     print 'waiting for polymesh'
 
   def colorCb(self, feedback):
-  
-    
+
     if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
-      print 'label command incoming'
-      print feedback.model_type, self.visu_config.relative.geometries.keys()
-      
+
+      #print feedback.model_type, self.visu_config.relative.geometries.keys()
+
       if feedback.model_type in self.visu_config.relative.geometries.keys():
         self.visu_config.relative.geometries[feedback.model_type].show_geo = feedback.show_geo
         self.visu_config.relative.geometries[feedback.model_type].geo_color = feedback.geo_color
@@ -860,10 +884,21 @@ class InteractiveObjectMarker():
         self.visu_config.relative.geometries[feedback.model_type].text_offset = feedback.text_offset
         updateVisuControl(self.marker.controls, self.obj, self.visu_config)
         self.server.applyChanges()
-      self.update()
+
+      if feedback.model_type in self.visu_config.relative.abstractions.keys():
+        self.visu_config.relative.abstractions[feedback.model_type].show_geo = feedback.show_geo
+        self.visu_config.relative.abstractions[feedback.model_type].geo_color = feedback.geo_color
+        self.visu_config.relative.abstractions[feedback.model_type].geo_scale = feedback.geo_scale
+        self.visu_config.relative.abstractions[feedback.model_type].show_text = feedback.geo_color
+        self.visu_config.relative.abstractions[feedback.model_type].text_color = feedback.text_color
+        self.visu_config.relative.abstractions[feedback.model_type].text_scale = feedback.text_scale
+        self.visu_config.relative.abstractions[feedback.model_type].text_offset = feedback.text_offset
+        updateVisuControl(self.marker.controls, self.obj, self.visu_config)
+        self.server.applyChanges()
+      #self.update()
 
   def labelCb(self, feedback):
-    
+
     if feedback.obj_name == self.obj.name or feedback.desc_type == self.obj.description.type:
 
       if feedback.set_pose:
@@ -1068,7 +1103,8 @@ class InteractiveObjectMarker():
       self.menu_handler.insert("Origin", parent = reset, callback = self.resetGeometryModelCb)
       self.menu_handler.insert("Pose", parent = reset, callback = self.resetGeometryModelCb)
       self.menu_handler.insert("Z-Align", parent = reset, callback = self.resetGeometryModelCb)
-      
+      self.menu_handler.insert("MakeRelative2D", parent = reset, callback = self.resetGeometryModelCb)
+      self.menu_handler.insert("MakeRelative3D", parent = reset, callback = self.resetGeometryModelCb)
 
       meta = self.menu_handler.insert("Meta", parent = model_menu)
       self.menu_handler.insert("Rename", parent = meta, callback = self.renameGeometryModelCb)
@@ -1090,7 +1126,7 @@ class InteractiveObjectMarker():
     self.marker.description = "This is the interactive marker for object: " + self.obj.name
 
     if self.obj.description.type:
-      self.label = self.obj.description.type + str(self.obj.id)
+      self.label = self.obj.description.type + "_" + str(self.obj.id)
     else:
       self.label = "Unknown"
     self.label_pose = ROSPoseStamped()

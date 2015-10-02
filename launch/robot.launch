@@ -2,12 +2,12 @@
 <launch>
 
   <include file="$(find calvin_gazebo)/launch/calvin_avz_world.launch"/>
-  <include file="$(find calvin_navigation)/launch/dual_map_navigation.launch"/>
-  
-  <include file="$(find lvr_ros)/launch/lvr_slicer.launch"/>
-  <include file="$(find occupancy_grid_extractor)/launch/occupancy_grid_extractor.launch"/>
+  <!--include file="$(find calvin_navigation)/launch/dual_map_navigation.launch"/-->
 
-  <node pkg="tf" type="static_transform_publisher" name="robot_map_tf" args="0 0 0 0 0 0 /world /map 100"/>
-  <node pkg="rviz_semap_plugin" type="polygon_client" name="polygon_client"/> 
+  <!--include file="$(find lvr_ros)/launch/lvr_slicer.launch"/-->
+  <!--include file="$(find occupancy_grid_extractor)/launch/occupancy_grid_extractor.launch"/-->
+
+  <node pkg="tf" type="static_transform_publisher" name="robot_map_tf" args="0 0 0 0 0 0 /world /odom_combined 100"/>
+  <!--node pkg="rviz_semap_plugin" type="polygon_client" name="polygon_client"/-->
 
 </launch>

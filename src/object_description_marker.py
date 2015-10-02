@@ -10,9 +10,6 @@ from geometry_msgs.msg import Pose2D as ROSPose2D
 from geometry_msgs.msg import Pose as ROSPose
 from geometry_msgs.msg import PoseStamped as ROSPoseStamped
 from geometry_msgs.msg import Polygon as ROSPolygon
-from shape_msgs.msg import Mesh as ROSMesh
-from shape_msgs.msg import MeshTriangle as ROSMeshTriangle
-from semap_msgs.msg import PolygonMesh as ROSPolygonMesh
 from semap_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel, Polygon2DModel, Polygon3DModel, TriangleMesh3DModel, PolygonMesh3DModel
 from semap_msgs.msg import ObjectDescription as ROSObjectDescription
 from semap_msgs.msg import ObjectInstance as ROSObjectInstance

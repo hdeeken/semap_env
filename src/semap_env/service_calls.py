@@ -21,6 +21,18 @@ def call_refresh_objects(ids):
   except rospy.ServiceException as e:
       return None, "RefreshObjects service call failed: %s" % e
 
+def call_show_objects(ids):
+  try:
+    rospy.wait_for_service('show_objects')
+    call = rospy.ServiceProxy('show_objects', ActivateObjects)
+    request = ActivateObjectsRequest()
+    request.ids = ids
+    response = call(request)
+    rospy.loginfo('ShowObjects service call succeeded!')
+    return response
+  except rospy.ServiceException as e:
+      return None, "ShowObjects service call failed: %s" % e
+
 def call_activate_objects(ids):
   try:
     rospy.wait_for_service('activate_objects')

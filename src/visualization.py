@@ -157,7 +157,6 @@ def defaultAbsoluteDescriptionVisu(geo_set):
 
 def defaultRelativeAbstractionVisu(geo_set):
   model_dict = {}
-
   for model in geo_set.point2d_models:
     visu = visuPoint2DModel(model)
     if model.type == "Position2D":
@@ -175,7 +174,7 @@ def defaultRelativeAbstractionVisu(geo_set):
     if model.type == "FootprintBox":
       visu.show_geo = False
       visu.geo_color = [0.0, 0.0, 0.50, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
+      visu.geo_scale = [0.03, 0.03, 0.03]
     if model.type == "FootprintHull":
       visu.show_geo = False
       visu.geo_color = [0.0, 0.50, 0.0, 1.0]
@@ -233,41 +232,52 @@ def defaultRelativeAbstractionVisu(geo_set):
       visu.geo_color = [0.0, 0.75, 0.0, 1.0]
       visu.geo_scale = [0.005, 0.005, 0.005]
     if model.type == "BoundingBox":
-      visu.show_geo = True
-      visu.geo_color = [0.0, 0.0, 0.75, 1.0]
+      visu.show_geo = False
+      visu.geo_color = [0.0, 75.0, 0.0, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
     if model.type == "BoundingHull":
       visu.show_geo = False
       visu.geo_color = [0.75, 0.75, 0.0, 1.0]
       visu.geo_scale = [0.005, 0.005, 0.005]
-    if model.type == "BoundingBox":
-      visu.show_geo = False
-      visu.geo_color = [0.75, 0.0, 0.0, 1.0]
-      visu.geo_scale = [0.01, 0.01, 0.01]
     if model.type == "AxisAligned3D":
       visu.show_geo = False
       visu.geo_color = [0.75, 0.75, 0.75, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
       visu.show_text = False
-
-    if "Extrusion" in model.type:
-      visu.geo_color = [0.5, 0.5, 0.5, 1.0]
+    if "Projection" in model.type:
+      visu.geo_color = [0.0, 0.0, 0.0, 1.0]
       visu.geo_scale = [0.05, 0.05, 0.05]
       visu.show_geo = False
       visu.show_text = False
       if "Front" in model.type:
-       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [  0.5, 0.0, 0.0, 0.0])]
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 1.0, 0.0, 0.0, 0.0])]
       elif "Back" in model.type:
-       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ -0.5, 0.0, 0.0, 0.0])]
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 0.5, 0.0, 0.0, 0.0])]
+      if "Left" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 1.0, 0.0, 0.0])]
+      elif "Right" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
+      if "Top" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 1.0, 0.0])]
+      elif "Bot" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
+    if "Halfspace" in model.type:
+      visu.geo_color = [0.0, 0.0, 0.0, 1.0]
+      visu.geo_scale = [0.05, 0.05, 0.05]
+      visu.show_geo = False
+      visu.show_text = False
+      if "Front" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 0.5, 0.0, 0.0, 0.0])]
+      elif "Back" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 1.0, 0.0, 0.0, 0.0])]
       if "Left" in model.type:
         visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
       elif "Right" in model.type:
-        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, -0.5, 0.0, 0.0])]
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 1.0, 0.0, 0.0])]
       if "Top" in model.type:
         visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
       elif "Bot" in model.type:
-        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, -0.5, 0.0])]
-
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 1.0, 0.0])]
     model_dict[visu.type] = visu
 
   return model_dict
@@ -369,24 +379,40 @@ def defaultAbsoluteAbstractionVisu(geo_set):
       visu.geo_color = [0.75, 0.75, 0.75, 1.0]
       visu.geo_scale = [0.01, 0.01, 0.01]
       visu.show_text = False
-    if "Extrusion" in model.type:
-      visu.geo_color = [0.5, 0.5, 0.5, 1.0]
+    if "Projection" in model.type:
+      visu.geo_color = [0.0, 0.0, 0.0, 1.0]
       visu.geo_scale = [0.05, 0.05, 0.05]
       visu.show_geo = False
       visu.show_text = False
       if "Front" in model.type:
-       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [  0.5, 0.0, 0.0, 0.0])]
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 1.0, 0.0, 0.0, 0.0])]
       elif "Back" in model.type:
-       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ -0.5, 0.0, 0.0, 0.0])]
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 0.5, 0.0, 0.0, 0.0])]
+      if "Left" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 1.0, 0.0, 0.0])]
+      elif "Right" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
+      if "Top" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 1.0, 0.0])]
+      elif "Bot" in model.type:
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
+    if "Halfspace" in model.type:
+      visu.geo_color = [0.0, 0.0, 0.0, 1.0]
+      visu.geo_scale = [0.05, 0.05, 0.05]
+      visu.show_geo = False
+      visu.show_text = False
+      if "Front" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 0.5, 0.0, 0.0, 0.0])]
+      elif "Back" in model.type:
+       visu.geo_color  = [sum(x) for x in zip(visu.geo_color, [ 1.0, 0.0, 0.0, 0.0])]
       if "Left" in model.type:
         visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.5, 0.0, 0.0])]
       elif "Right" in model.type:
-        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, -0.5, 0.0, 0.0])]
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 1.0, 0.0, 0.0])]
       if "Top" in model.type:
         visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 0.5, 0.0])]
       elif "Bot" in model.type:
-        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, -0.5, 0.0])]
-
+        visu.geo_color = [sum(x) for x in zip(visu.geo_color, [ 0.0, 0.0, 1.0, 0.0])]
     model_dict[visu.type] = visu
 
   return model_dict
@@ -557,7 +583,8 @@ def defaultGhostAbsoluteAbstractionVisu(geo_set):
     visu = visuPoint2DModel(model)
     if model.type == "Position2D":
       visu.show_geo = False
-      visu.geo_color = [0.5, 0.5, 0.5, 0.5]
+      visu.show_text = False
+      visu.geo_color = [1.5, 0.5, 0.5, 0.5]
       visu.geo_scale = [0.1, 0.1, 0.1]
     model_dict[visu.type] = visu
 
@@ -570,15 +597,18 @@ def defaultGhostAbsoluteAbstractionVisu(geo_set):
     visu = visuPolygon2DModel(model)
     if model.type == "FootprintBox":
       visu.show_geo = False
+      visu.show_text = False
       visu.geo_color = [0.5, 0.5, 0.5, 0.5]
       visu.geo_scale = [0.01, 0.01, 0.01]
     if model.type == "FootprintHull":
       visu.show_geo = False
-      visu.geo_color = [0.5, 0.5, 0.5, 0.5]
-      visu.geo_scale = [0.1, 0.1, 0.1]
+      visu.show_text = False
+      visu.geo_color = [1.5, 0.5, 0.5, 0.5]
+      visu.geo_scale = [0.01, 0.01, 0.01]
       visu.show_text = False
     if model.type == "AxisAligned2D":
       visu.show_geo = False
+      visu.show_text = False
       visu.geo_color = [0.5, 0.5, 0.5, 0.5]
       visu.geo_scale = [0.05, 0.05, 0.05]
       visu.show_text = False
@@ -588,8 +618,9 @@ def defaultGhostAbsoluteAbstractionVisu(geo_set):
     visu = visuPoint3DModel(model)
     if model.type == "Position3D":
       visu.show_geo = False
-      visu.geo_color = [0.5, 0.5, 0.5, 0.5]
-      visu.geo_scale = [0.02, 0.02, 0.02]
+      visu.show_text = False
+      visu.geo_color = [1.5, 0.5, 0.5, 0.5]
+      visu.geo_scale = [0.1, 0.1, 0.1]
     model_dict[visu.type] = visu
 
   for model in geo_set.pose3d_models:
@@ -621,6 +652,11 @@ def defaultGhostAbsoluteAbstractionVisu(geo_set):
       visu.show_geo = False
       visu.geo_color = [0.5, 0.5, 0.5, 0.5]
       visu.geo_scale = [0.01, 0.01, 0.01]
+      visu.show_text = False
+    if "Projection" in model.type or "Halfspace" in model.type:
+      visu.geo_color = [0.5, 0.5, 0.5, 0.5]
+      visu.geo_scale = [0.01, 0.01, 0.01]
+      visu.show_geo = False
       visu.show_text = False
     model_dict[visu.type] = visu
 
@@ -781,7 +817,7 @@ def create_geometry_model_set_marker(geo_set, pose, visu):
   for model in geo_set.pose2d_models:
     quat = quaternion_from_euler(0, 0, model.pose.theta)
     model_pose = copy.deepcopy(pose)
-    
+
     model_pose.pose.position.x = model.pose.x
     model_pose.pose.position.y = model.pose.y
     model_pose.pose.position.z = 0.0
@@ -885,8 +921,8 @@ def create_inactive_object_visualization_marker(inst, inst_visu):
   root_pose.header.frame_id = "world"
   root_pose.pose.orientation.w = 1.0
   absolute_geometries_marker = create_geometry_model_set_marker(inst.absolute.geometries, root_pose, inst_visu.absolute.geometries)
-  absolute_abstraction_marker = create_geometry_model_set_marker(inst.absolute.abstractions, root_pose, inst_visu.absolute.abstractions)
   array.markers += absolute_geometries_marker.markers
+  absolute_abstraction_marker = create_geometry_model_set_marker(inst.absolute.abstractions, root_pose, inst_visu.absolute.abstractions)
   array.markers += absolute_abstraction_marker.markers
 
   id = 0
@@ -913,9 +949,8 @@ def create_object_visualization_marker(inst, inst_visu):
   root_pose.header.frame_id = "world"
   root_pose.pose.orientation.w = 1.0
   absolute_geometries_marker = create_geometry_model_set_marker(inst.absolute.geometries, root_pose, inst_visu.absolute.geometries)
-  absolute_abstraction_marker = create_geometry_model_set_marker(inst.absolute.abstractions, root_pose, inst_visu.absolute.abstractions)
-
   array.markers += absolute_geometries_marker.markers
+  absolute_abstraction_marker = create_geometry_model_set_marker(inst.absolute.abstractions, root_pose, inst_visu.absolute.abstractions)
   array.markers += absolute_abstraction_marker.markers
 
   id = 0
