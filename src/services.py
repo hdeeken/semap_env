@@ -10,8 +10,8 @@ from tf.listener import TransformListener
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 
-from db_model import *
-from db_environment import db, initializeConnection
+from semap.db_model import *
+from semap.db_environment import db, initializeConnection
 from interactive_object_marker import *
 from ghost_object_marker import *
 from semap_env.srv import *
@@ -145,7 +145,7 @@ class SEMAPEnvironmentServices():
 
         #rospy.loginfo("Took %f seconds" % (rospy.Time.now() - now).to_sec())
       self.publishTF(None)
-      rospy.loginfo("Took %f seconds" % (rospy.Time.now() - then).to_sec())
+      rospy.loginfo("Took %f seconds to activate" % (rospy.Time.now() - then).to_sec())
       rospy.loginfo("SpatialEnv SRVs: activate_objects - done")
     return ActivateObjectsResponse()
 
