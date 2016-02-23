@@ -25,11 +25,11 @@ from semap_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel,
 from semap_msgs.msg import ColorCommand, LabelCommand
 from semap_msgs.msg import ObjectDescription as ROSObjectDescription
 from semap_msgs.msg import ObjectInstance as ROSObjectInstance
-from interactive_object_marker_widgets import *
-from assimp_postgis_importer import importFromFileToMesh
+from semap_env.interactive_object_marker_widgets import *
+from semap_env.assimp_postgis_importer import importFromFileToMesh
 from semap_env.service_calls import *
-from object_description_marker import *
-from visualization import *
+from semap_env.object_description_marker import *
+from semap_env.visualization import *
 
 from shared_marker_util import *
 

@@ -12,10 +12,10 @@ from interactive_markers.menu_handler import *
 
 from semap.db_model import *
 from semap.db_environment import db, initializeConnection
-from interactive_object_marker import *
-from ghost_object_marker import *
+from semap_env.interactive_object_marker import *
+from semap_env.ghost_object_marker import *
 from semap_env.srv import *
-from object_description_marker import *
+from semap_env.object_description_marker import *
 from semap_ros.instance_srv_calls import *
 from semap_ros.description_srv_calls import *
 from semap_msgs.msg import ObjectDescription as ROSObjectDescription

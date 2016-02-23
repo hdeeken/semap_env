@@ -11,7 +11,7 @@ from semap_msgs.msg import Point2DModel, Point3DModel, Pose2DModel, Pose3DModel,
 from semap_msgs.msg import ColorCommand
 from semap_msgs.msg import ObjectDescription as ROSObjectDescription
 from semap_msgs.msg import ObjectInstance as ROSObjectInstance
-from object_description_marker import *
+from semap_env.object_description_marker import *
 
 class InstVisu:
   relative = None

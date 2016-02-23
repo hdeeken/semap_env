@@ -1,0 +1,24 @@
+<package>
+  <name> semap_env </name>
+  <version>0.1.0</version>
+  <description>
+     Nodes, Services and RViz Tools to create and maintain an environment with the SEMAP database.
+  </description>
+
+  <author email="hdeeken@uos.de">Henning Deeken</author>
+  <maintainer email="hdeeken@uos.de">Henning Deeken</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/semap_env</url>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>semap_ros</build_depend>
+  <build_depend>interactive_markers</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <run_depend>rospy</run_depend>
+  <run_depend>semap_ros</run_depend>
+  <run_depend>interactive_markers</run_depend>
+  <run_depend>message_runtime</run_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
